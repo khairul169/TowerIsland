@@ -24,7 +24,7 @@ class Mesh
 {
 public:
 	size_t numTris;
-	GLuint vtb, uvb, vao;
+	GLuint vtb, uvb, nmb, vao;
 
 	Material *material;
 

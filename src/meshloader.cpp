@@ -33,6 +33,11 @@ void Mesh::draw()
 	glBindBuffer(GL_ARRAY_BUFFER, uvb);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
+	// 3rd attribute buffer : Normals
+	glEnableVertexAttribArray(2);
+	glBindBuffer(GL_ARRAY_BUFFER, nmb);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
 	// Draw the triangle !
 	glDrawArrays(GL_TRIANGLES, 0, numTris * 3);
 
@@ -87,7 +92,7 @@ void StaticMesh::parse()
 	for (size_t s = 0; s < shapes.size(); s++)
 	{
 		Mesh *mesh = new Mesh();
-		GLuint vertexID, uvID, vertexArrayID;
+		GLuint vertexID, uvID, normalsID, vertexArrayID;
 
 		glGenVertexArrays(1, &vertexArrayID);
 		glBindVertexArray(vertexArrayID);
@@ -95,6 +100,7 @@ void StaticMesh::parse()
 		// buffers
 		vector<vec3> vertices;
 		vector<vec2> uvs;
+		vector<vec3> normals;
 
 		int material_id = -1;
 
@@ -106,6 +112,7 @@ void StaticMesh::parse()
 			if (material_id == -1)
 				material_id = shapes[s].mesh.material_ids[f];
 
+			// Vertices
 			float v[3][3];
 			for (int k = 0; k < 3; k++) {
 				int f0 = idx0.vertex_index;
@@ -117,6 +124,7 @@ void StaticMesh::parse()
 				v[2][k] = attrib.vertices[3 * f2 + k];
 			}
 
+			// UVs
 			float tc[3][2];
 			if (attrib.texcoords.size() > 0) {
 				// Flip Y coord.
@@ -136,9 +144,23 @@ void StaticMesh::parse()
 				tc[2][1] = 0.0f;
 			}
 
+			// Normals
+			float n[3][3];
+			if (attrib.normals.size() > 0) {
+				int f0 = idx0.normal_index;
+				int f1 = idx1.normal_index;
+				int f2 = idx2.normal_index;
+				for (int k = 0; k < 3; k++) {
+					n[0][k] = attrib.normals[3 * f0 + k];
+					n[1][k] = attrib.normals[3 * f1 + k];
+					n[2][k] = attrib.normals[3 * f2 + k];
+				}
+			}
+
 			for (int k = 0; k < 3; k++) {
 				vertices.push_back(vec3(v[k][0], v[k][1], v[k][2]));
 				uvs.push_back(vec2(tc[k][0], tc[k][1]));
+				normals.push_back(vec3(n[k][0], n[k][1], n[k][2]));
 			}
 		}
 
@@ -155,7 +177,14 @@ void StaticMesh::parse()
 		{
 			glGenBuffers(1, &uvID);
 			glBindBuffer(GL_ARRAY_BUFFER, uvID);
-			glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(vec3), &uvs[0], GL_STATIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(vec2), &uvs[0], GL_STATIC_DRAW);
+		}
+
+		if (normals.size() > 0)
+		{
+			glGenBuffers(1, &normalsID);
+			glBindBuffer(GL_ARRAY_BUFFER, normalsID);
+			glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(vec3), &normals[0], GL_STATIC_DRAW);
 		}
 
 		if (material_id >= 0)
@@ -169,6 +198,7 @@ void StaticMesh::parse()
 
 		mesh->vtb = vertexID;
 		mesh->uvb = uvID;
+		mesh->nmb = normalsID;
 		mesh->vao = vertexArrayID;
 		meshes.push_back(mesh);
 	}

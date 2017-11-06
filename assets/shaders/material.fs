@@ -2,6 +2,7 @@
 
 // Input
 in vec2 UV;
+in vec3 NORMAL;
 
 // Output
 out vec3 COLOR;
@@ -12,5 +13,6 @@ uniform sampler2D diffuse;
 void main(){
 	vec3 col = vec3(1.0);
 	col = color * texture(diffuse, UV).rgb;
+	col = NORMAL;
 	COLOR = col;
 }
