@@ -42,8 +42,14 @@ void Main::ready()
 	materialShaders = new MaterialShaders();
 	materialShaders->load("material");
 
-	mesh = new StaticMesh();
-	mesh->loadMesh("crate/crate.obj");
+	// Load mesh
+	m_floor = new StaticMesh();
+	m_floor->loadMesh("floor/floor.obj");
+	m_floor->position = vec3(0, -0.5f, 0);
+
+	m_crate = new StaticMesh();
+	m_crate->loadMesh("crate/crate.obj");
+	m_crate->scaling = vec3(0.5f);
 }
 
 static float rotation = 0.0f;
@@ -69,7 +75,9 @@ void Main::loop()
 	materialShaders->bind();
 	materialShaders->updateCamera(camera);
 	
-	mesh->draw();
+	// Draw our mesh
+	m_floor->draw();
+	m_crate->draw();
 
 	flLastTime = flTime;
 }

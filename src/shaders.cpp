@@ -116,11 +116,18 @@ void MaterialShaders::shadersLoaded()
 	updateProjection();
 
 	// Vert Uniforms
+	modelMatrix = glGetUniformLocation(programID, "model");
+	viewMatrix = glGetUniformLocation(programID, "view");
 	matrixUniform = glGetUniformLocation(programID, "modelViewProjection");
+	normalMatrix = glGetUniformLocation(programID, "normal");
 
 	// Frag Uniforms
 	colorUniform = glGetUniformLocation(programID, "color");
 	diffuseUniform = glGetUniformLocation(programID, "diffuse");
+
+	lightPosUniform = glGetUniformLocation(programID, "lightPos");
+	lightAmbientUniform = glGetUniformLocation(programID, "lightAmbient");
+	lightColorUniform = glGetUniformLocation(programID, "lightColor");
 }
 
 void MaterialShaders::setModelMatrix(mat4 mat)
@@ -137,7 +144,20 @@ void MaterialShaders::updateCamera(Camera *cam)
 void MaterialShaders::updateProjection()
 {
 	modelViewProjection = projection * view * model;
+	glUniformMatrix4fv(modelMatrix, 1, GL_FALSE, &model[0][0]);
+	glUniformMatrix4fv(viewMatrix, 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(matrixUniform, 1, GL_FALSE, &modelViewProjection[0][0]);
+
+	mat4 normal = transpose(inverse(model));
+	glUniformMatrix4fv(normalMatrix, 1, GL_FALSE, &normal[0][0]);
+
+	vec3 lightPos = vec3(3, 2, 3);
+	vec4 lightAmbient = vec4(1.0f, 1.0f, 1.0f, 0.4f);
+	vec3 lightColor = vec3(1.0f, 1.0f, 1.0f);
+
+	glUniform3f(lightPosUniform, lightPos.x, lightPos.y, lightPos.z);
+	glUniform4f(lightAmbientUniform, lightAmbient.x, lightAmbient.y, lightAmbient.z, lightAmbient.w);
+	glUniform3f(lightColorUniform, lightColor.x, lightColor.y, lightColor.z);
 }
 
 void MaterialShaders::setColor(vec3 col)

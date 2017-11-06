@@ -39,11 +39,15 @@ private:
 	mat4 modelViewProjection;
 
 	// Vertex uniform
-	GLuint matrixUniform;
+	GLuint modelMatrix, viewMatrix;
+	GLuint matrixUniform, normalMatrix;
 
 	// Fragment uniform
 	GLuint colorUniform;
 	GLuint diffuseUniform;
+
+	// Lighting
+	GLuint lightPosUniform, lightAmbientUniform, lightColorUniform;
 
 public:
 	void shadersLoaded();

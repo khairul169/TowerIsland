@@ -10,10 +10,11 @@ out vec3 NORMAL;
 
 // Uniforms
 uniform mat4 modelViewProjection;
+uniform mat4 normal;
 
 void main(){
 	gl_Position = modelViewProjection * vec4(vertexPosition, 1.0);
 	
 	UV = vertexUV;
-	NORMAL = vertexNormal;
+	NORMAL = (normal*vec4(vertexNormal, 0.0)).xyz;
 }

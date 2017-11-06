@@ -23,13 +23,24 @@ public:
 class Mesh
 {
 public:
+	// Property
 	size_t numTris;
 	GLuint vtb, uvb, nmb, vao;
 
+	// Mat
 	Material *material;
 
+	// Transform
+	vec3 position;
+	vec3 rotation;
+	vec3 scaling;
+
 public:
-	Mesh() {}
+	Mesh()
+	{
+		position = rotation = vec3(0.0f);
+		scaling = vec3(1.0f);
+	}
 
 	void draw();
 };
@@ -49,6 +60,18 @@ private:
 	vector<Mesh*> meshes;
 
 public:
+	// Transform
+	vec3 position;
+	vec3 rotation;
+	vec3 scaling;
+
+public:
+	StaticMesh()
+	{
+		position = rotation = vec3(0.0f);
+		scaling = vec3(1.0f);
+	}
+
 	void loadMesh(const char* path);
 	void draw();
 	

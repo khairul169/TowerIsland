@@ -15,8 +15,8 @@ void Mesh::draw()
 
 	// Set model transform
 	mat4 transform = mat4(1.0f);
-	transform = translate(transform, vec3(0.0f, 0.0f, 0.0f));
-	transform = scale(transform, vec3(1.0f));
+	transform = translate(transform, position);
+	transform = scale(transform, scaling);
 
 	gMain->materialShaders->setModelMatrix(transform);
 	gMain->materialShaders->updateProjection();
@@ -208,6 +208,9 @@ void StaticMesh::draw()
 {
 	for (size_t i = 0; i < meshes.size(); i++)
 	{
+		meshes[i]->position = position;
+		meshes[i]->rotation = rotation;
+		meshes[i]->scaling = scaling;
 		meshes[i]->draw();
 	}
 }

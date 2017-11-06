@@ -39,7 +39,8 @@ private:
 	float flLastTime;
 	float flDelta;
 
-	StaticMesh *mesh;
+	StaticMesh *m_floor;
+	StaticMesh *m_crate;
 
 public:
 	MaterialShaders *materialShaders;
