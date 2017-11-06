@@ -50,6 +50,11 @@ void Main::ready()
 	m_crate = new StaticMesh();
 	m_crate->loadMesh("crate/crate.obj");
 	m_crate->scaling = vec3(0.5f);
+
+	m_sphere = new StaticMesh();
+	m_sphere->loadMesh("sphere/sphere.obj");
+	m_sphere->position = vec3(2.0f, 0, 0);
+	m_sphere->scaling = vec3(0.5f);
 }
 
 static float rotation = 0.0f;
@@ -77,7 +82,13 @@ void Main::loop()
 	
 	// Draw our mesh
 	m_floor->draw();
+
+	m_crate->rotation.y = cos(radians(60.0f));
 	m_crate->draw();
+
+	m_sphere->position.x = 2 * cos(radians(rotation));
+	m_sphere->position.z = 2 * sin(radians(rotation));
+	m_sphere->draw();
 
 	flLastTime = flTime;
 }

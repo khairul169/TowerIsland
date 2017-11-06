@@ -41,6 +41,7 @@ private:
 
 	StaticMesh *m_floor;
 	StaticMesh *m_crate;
+	StaticMesh *m_sphere;
 
 public:
 	MaterialShaders *materialShaders;
