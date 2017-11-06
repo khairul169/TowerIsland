@@ -15,6 +15,11 @@ private:
 	GLFWwindow* window;
 
 public:
+	int width, height;
+
+	float getAspectRatio() { return (float)width / (float)height; }
+
+public:
 	void init();
 	void loop();
 	void swapBuffers();

@@ -21,7 +21,7 @@ void Main::init()
 
 	// Setup camera
 	camera = new Camera();
-	camera->setPerspective(radians(45.0f), 1024.0f / 600.0f, 0.1f, 100.0f);
+	camera->setPerspective(radians(60.0f), window->getAspectRatio(), 0.1f, 100.0f);
 	camera->setLookAt(vec3(4, 3, 3), vec3(0, 0, 0), vec3(0, 1, 0));
 
 	// Our game is ready
