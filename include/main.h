@@ -39,10 +39,6 @@ private:
 	float flLastTime;
 	float flDelta;
 
-	GLuint vertexbuffer, uvbuffer;
-
-	Texture *uvtemplate;
-
 	StaticMesh *mesh;
 
 public:
@@ -52,6 +48,8 @@ public:
 	void init();
 	void ready();
 	void loop();
+
+	Camera *getCamera() { return camera; }
 };
 
 extern Main *gMain;

@@ -1,14 +1,12 @@
 #include "main.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "stb/stb_image.h"
 
 bool Texture::loadTexture(const char* path)
 {
 	// Load image
 	unsigned char* image = stbi_load(path, &width, &height, &bpp, STBI_rgb);
-
-	printf("%s\nwidth %i\nheight %i\nbpp %i\n", path, width, height, bpp);
 
 	// Failed to load image
 	if (image == NULL)

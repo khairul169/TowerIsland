@@ -10,27 +10,50 @@
 using namespace std;
 using namespace tinyobj;
 
-class StaticMesh: public Mesh
+class Material
 {
-private:
-	attrib_t attrib;
-	vector<shape_t> shape;
-	vector<material_t> material;
+public:
+	vec3 color;
+	Texture *diffuse;
 
 public:
-	void loadMesh(const char* path);
-	
-private:
-	void parse();
+	Material() {}
 };
 
 class Mesh
 {
-protected:
-	GLuint vertexBuffer, uvBuffer;
+public:
+	size_t numTris;
+	GLuint vtb, uvb, vao;
+
+	Material *material;
 
 public:
-	// todo
+	Mesh() {}
+
+	void draw();
+};
+
+class StaticMesh
+{
+private:
+	// Mesh attributes
+	string basepath;
+	string filename;
+
+	attrib_t attrib;
+	vector<shape_t> shapes;
+	vector<material_t> materials;
+
+	// Mesh handler
+	vector<Mesh*> meshes;
+
+public:
+	void loadMesh(const char* path);
+	void draw();
+	
+private:
+	void parse();
 };
 
 #endif // !MESHLOADER_H

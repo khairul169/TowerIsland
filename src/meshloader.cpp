@@ -4,24 +4,180 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tinyobjloader/tiny_obj_loader.h"
 
+void Mesh::draw()
+{
+	// Bind VAO
+	glBindVertexArray(vao);
+
+	// Shaders binding
+	gMain->materialShaders->bind();
+	gMain->materialShaders->updateCamera(gMain->getCamera());
+
+	// Set model transform
+	mat4 transform = mat4(1.0f);
+	transform = translate(transform, vec3(0.0f, 0.0f, 0.0f));
+	transform = scale(transform, vec3(1.0f));
+
+	gMain->materialShaders->setModelMatrix(transform);
+	gMain->materialShaders->updateProjection();
+	gMain->materialShaders->setColor(material->color);
+	gMain->materialShaders->setTexture(material->diffuse);
+
+	// 1rst attribute buffer : vertices
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, vtb);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+	// 2nd attribute buffer : UVs
+	glEnableVertexAttribArray(1);
+	glBindBuffer(GL_ARRAY_BUFFER, uvb);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+	// Draw the triangle !
+	glDrawArrays(GL_TRIANGLES, 0, numTris * 3);
+
+	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(1);
+}
+
 void StaticMesh::loadMesh(const char* path)
 {
 	// Load mesh object
-	string basepath = "assets/models/";
-	string fname = basepath + string(path) + ".obj";
-	string err;
+	filename = "assets/models/" + string(path);
+	basepath = filename.substr(0, filename.find_last_of("/") + 1);
 
-	if (!LoadObj(&attrib, &shape, &material, &err, fname.c_str(), basepath.c_str(), true))
+	string err;
+	if (!LoadObj(&attrib, &shapes, &materials, &err, filename.c_str(), basepath.c_str(), true))
 	{
-		printf("Cannot load obj %s! err: %s\n", fname.c_str(), err.c_str());
+		printf("Cannot load obj %s! err: %s\n", filename.c_str(), err.c_str());
 		return;
 	}
+
+	// Parse object
+	parse();
 }
 
 void StaticMesh::parse()
 {
-	for (int s = 0; s < shapes.size(); s++)
-	{
+	vector<Material*> m_materials;
+	m_materials.resize(materials.size() + 1);
 
+	// Setup materials
+	for (size_t i = 0; i < materials.size(); i++)
+	{
+		m_materials[i] = new Material();
+		m_materials[i]->color = vec3(materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2]);
+
+		if (!materials[i].diffuse_texname.empty())
+		{
+			Texture *diffuse = new Texture();
+			string diffusePath = basepath + materials[i].diffuse_texname;
+			diffuse->loadTexture(diffusePath.c_str());
+
+			m_materials[i]->diffuse = diffuse;
+		}
+	}
+
+	// Add default materials
+	Material *defaultMat = new Material();
+	defaultMat->color = vec3(0.8f);
+	m_materials[materials.size()] = defaultMat;
+
+	// Loop the shapes
+	for (size_t s = 0; s < shapes.size(); s++)
+	{
+		Mesh *mesh = new Mesh();
+		GLuint vertexID, uvID, vertexArrayID;
+
+		glGenVertexArrays(1, &vertexArrayID);
+		glBindVertexArray(vertexArrayID);
+
+		// buffers
+		vector<vec3> vertices;
+		vector<vec2> uvs;
+
+		int material_id = -1;
+
+		for (size_t f = 0; f < shapes[s].mesh.indices.size() / 3; f++) {
+			index_t idx0 = shapes[s].mesh.indices[3 * f + 0];
+			index_t idx1 = shapes[s].mesh.indices[3 * f + 1];
+			index_t idx2 = shapes[s].mesh.indices[3 * f + 2];
+
+			if (material_id == -1)
+				material_id = shapes[s].mesh.material_ids[f];
+
+			float v[3][3];
+			for (int k = 0; k < 3; k++) {
+				int f0 = idx0.vertex_index;
+				int f1 = idx1.vertex_index;
+				int f2 = idx2.vertex_index;
+
+				v[0][k] = attrib.vertices[3 * f0 + k];
+				v[1][k] = attrib.vertices[3 * f1 + k];
+				v[2][k] = attrib.vertices[3 * f2 + k];
+			}
+
+			float tc[3][2];
+			if (attrib.texcoords.size() > 0) {
+				// Flip Y coord.
+				tc[0][0] = attrib.texcoords[2 * idx0.texcoord_index];
+				tc[0][1] = 1.0f - attrib.texcoords[2 * idx0.texcoord_index + 1];
+				tc[1][0] = attrib.texcoords[2 * idx1.texcoord_index];
+				tc[1][1] = 1.0f - attrib.texcoords[2 * idx1.texcoord_index + 1];
+				tc[2][0] = attrib.texcoords[2 * idx2.texcoord_index];
+				tc[2][1] = 1.0f - attrib.texcoords[2 * idx2.texcoord_index + 1];
+			}
+			else {
+				tc[0][0] = 0.0f;
+				tc[0][1] = 0.0f;
+				tc[1][0] = 0.0f;
+				tc[1][1] = 0.0f;
+				tc[2][0] = 0.0f;
+				tc[2][1] = 0.0f;
+			}
+
+			for (int k = 0; k < 3; k++) {
+				vertices.push_back(vec3(v[k][0], v[k][1], v[k][2]));
+				uvs.push_back(vec2(tc[k][0], tc[k][1]));
+			}
+		}
+
+		if (vertices.size() > 0)
+		{
+			glGenBuffers(1, &vertexID);
+			glBindBuffer(GL_ARRAY_BUFFER, vertexID);
+			glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(vec3), &vertices[0], GL_STATIC_DRAW);
+
+			mesh->numTris = vertices.size() / 3;
+		}
+
+		if (uvs.size() > 0)
+		{
+			glGenBuffers(1, &uvID);
+			glBindBuffer(GL_ARRAY_BUFFER, uvID);
+			glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(vec3), &uvs[0], GL_STATIC_DRAW);
+		}
+
+		if (material_id >= 0)
+		{
+			mesh->material = m_materials[material_id];
+		}
+		else
+		{
+			mesh->material = m_materials[m_materials.size() - 1];
+		}
+
+		mesh->vtb = vertexID;
+		mesh->uvb = uvID;
+		mesh->vao = vertexArrayID;
+		meshes.push_back(mesh);
+	}
+}
+
+void StaticMesh::draw()
+{
+	for (size_t i = 0; i < meshes.size(); i++)
+	{
+		meshes[i]->draw();
 	}
 }
