@@ -14,6 +14,7 @@ using namespace glm;
 #include "window.h"
 #include "shaders.h"
 #include "camera.h"
+#include "texloader.h"
 
 #include "utils.h"
 
@@ -37,7 +38,9 @@ private:
 	float flLastTime;
 	float flDelta;
 
-	GLuint vertexbuffer;
+	GLuint vertexbuffer, uvbuffer;
+
+	Texture *uvtemplate;
 
 public:
 	MaterialShaders *materialShaders;

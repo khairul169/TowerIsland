@@ -3,6 +3,7 @@
 
 #include "main.h"
 #include "camera.h"
+#include "texloader.h"
 
 class Shaders
 {
@@ -42,6 +43,7 @@ private:
 
 	// Fragment uniform
 	GLuint colorUniform;
+	GLuint diffuseUniform;
 
 public:
 	void shadersLoaded();
@@ -51,6 +53,7 @@ public:
 	void updateProjection();
 
 	void setColor(vec3 col);
+	void setTexture(Texture *tex);
 };
 
 #endif // !SHADERS_H

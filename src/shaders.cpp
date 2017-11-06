@@ -115,9 +115,12 @@ void MaterialShaders::shadersLoaded()
 	// Update projection
 	updateProjection();
 
-	// Uniforms
+	// Vert Uniforms
 	matrixUniform = glGetUniformLocation(programID, "modelViewProjection");
+
+	// Frag Uniforms
 	colorUniform = glGetUniformLocation(programID, "color");
+	diffuseUniform = glGetUniformLocation(programID, "diffuse");
 }
 
 void MaterialShaders::setModelMatrix(mat4 mat)
@@ -140,4 +143,11 @@ void MaterialShaders::updateProjection()
 void MaterialShaders::setColor(vec3 col)
 {
 	glUniform3f(colorUniform, col.x, col.y, col.z);
+}
+
+void MaterialShaders::setTexture(Texture *tex)
+{
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, tex->getTextureID());
+	glUniform1i(diffuseUniform, 0);
 }

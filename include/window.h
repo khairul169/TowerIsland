@@ -4,10 +4,10 @@
 #include <stdio.h>
 
 // GLEW
-#include "GL/glew.h"
+#include "glew/glew.h"
 
 // GLFW3
-#include "GLFW/glfw3.h"
+#include "glfw/glfw3.h"
 
 class Window
 {
