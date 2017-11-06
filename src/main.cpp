@@ -42,6 +42,9 @@ void Main::ready()
 	materialShaders = new MaterialShaders();
 	materialShaders->load("material");
 
+	mesh = new StaticMesh();
+	mesh->loadMesh("cube");
+
 	// Init vao
 	GLuint VertexArrayID;
 	glGenVertexArrays(1, &VertexArrayID);
@@ -170,8 +173,8 @@ void Main::loop()
 
 	materialShaders->setModelMatrix(transform);
 	materialShaders->updateProjection();
-	materialShaders->setColor(vec3(1.0f, 1.0f, 0.2f));
-	materialShaders->setTexture(uvtemplate);
+	materialShaders->setColor(vec3(1.0f, 1.0f, 0.0f));
+	//materialShaders->setTexture(uvtemplate);
 
 	// 1rst attribute buffer : vertices
 	glEnableVertexAttribArray(0);

@@ -15,6 +15,7 @@ using namespace glm;
 #include "shaders.h"
 #include "camera.h"
 #include "texloader.h"
+#include "meshloader.h"
 
 #include "utils.h"
 
@@ -41,6 +42,8 @@ private:
 	GLuint vertexbuffer, uvbuffer;
 
 	Texture *uvtemplate;
+
+	StaticMesh *mesh;
 
 public:
 	MaterialShaders *materialShaders;

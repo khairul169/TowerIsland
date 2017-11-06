@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClInclude Include="include\camera.h" />
     <ClInclude Include="include\main.h" />
+    <ClInclude Include="include\meshloader.h" />
     <ClInclude Include="include\shaders.h" />
     <ClInclude Include="include\texloader.h" />
     <ClInclude Include="include\utils.h" />
@@ -29,6 +30,7 @@
   <ItemGroup>
     <ClCompile Include="src\camera.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\meshloader.cpp" />
     <ClCompile Include="src\shaders.cpp" />
     <ClCompile Include="src\texloader.cpp" />
     <ClCompile Include="src\utils.cpp" />

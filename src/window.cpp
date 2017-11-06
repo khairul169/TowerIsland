@@ -9,7 +9,7 @@ void Window::init()
 		return;
 	}
 
-	glfwWindowHint(GLFW_SAMPLES, 4);
+	//glfwWindowHint(GLFW_SAMPLES, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -38,7 +38,7 @@ void Window::init()
 void Window::loop()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(0.0f, 0.0f, 0.4f, 1.0f);
+	glClearColor(187.0f/255.0f, 210.0f / 255.0f, 247.0f / 255.0f, 1.0f);
 
 	// Enable depth test
 	glEnable(GL_DEPTH_TEST);
