@@ -111,7 +111,7 @@ void PhysicsObject::createSphereBody(float mass, float radius)
 	dBodySetMass(body, &m);
 
 	// Create collision object
-	geometry = dCreateSphere(mgr->space, 0.5);
+	geometry = dCreateSphere(mgr->space, radius);
 	dGeomSetBody(geometry, body);
 }
 
