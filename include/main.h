@@ -1,6 +1,13 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+#ifdef _WIN32
+#define WIN32
+
+#pragma warning(disable:4996)
+#pragma warning(disable:4819)
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <cmath>
@@ -16,22 +23,21 @@ using namespace glm;
 #include "camera.h"
 #include "texloader.h"
 #include "meshloader.h"
+#include "physics.h"
 
 #include "utils.h"
-
-#ifdef _WIN32
-#pragma warning(disable:4996)
-#endif
 
 #define PROJECT_NAME "Tower Island"
 
 class Main
 {
-private:
+public:
 	// window handler
 	Window *window;
 	Camera *camera;
+	PhysicsManager *physicsMgr;
 
+private:
 	// variables
 	bool isActive;
 
@@ -42,6 +48,9 @@ private:
 	StaticMesh *m_floor;
 	StaticMesh *m_crate;
 	StaticMesh *m_sphere;
+
+	PhysicsObject *p_crate;
+	PhysicsObject *p_sphere;
 
 public:
 	MaterialShaders *materialShaders;
