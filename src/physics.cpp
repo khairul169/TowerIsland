@@ -139,7 +139,8 @@ vec3 PhysicsObject::getPosition()
 	return vec3(bPos[0], bPos[1], bPos[2]);
 }
 
-vec4 PhysicsObject::getRotation()
+quat PhysicsObject::getQuaternion()
 {
-	return vec4();
+	const dReal* quaternion = dBodyGetQuaternion(body);
+	return quat(quaternion[0], quaternion[1], quaternion[2], quaternion[3]);
 }

@@ -32,13 +32,14 @@ public:
 
 	// Transform
 	vec3 position;
-	vec3 rotation;
+	quat quaternion;
 	vec3 scaling;
 
 public:
 	Mesh()
 	{
-		position = rotation = vec3(0.0f);
+		position = vec3(0.0f);
+		quaternion = quat();
 		scaling = vec3(1.0f);
 	}
 
@@ -62,13 +63,14 @@ private:
 public:
 	// Transform
 	vec3 position;
-	vec3 rotation;
+	quat quaternion;
 	vec3 scaling;
 
 public:
 	StaticMesh()
 	{
-		position = rotation = vec3(0.0f);
+		position = vec3(0.0f);
+		quaternion = quat();
 		scaling = vec3(1.0f);
 	}
 

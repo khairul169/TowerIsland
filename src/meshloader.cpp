@@ -16,9 +16,7 @@ void Mesh::draw()
 	// Set model transform
 	mat4 transform = mat4(1.0f);
 	transform = translate(transform, position);
-	transform = rotate(transform, rotation.x, vec3(1, 0, 0));
-	transform = rotate(transform, rotation.y, vec3(0, 1, 0));
-	transform = rotate(transform, rotation.z, vec3(0, 0, 1));
+	transform = transform * toMat4(quaternion);
 	transform = scale(transform, scaling);
 
 	gMain->materialShaders->setModelMatrix(transform);
@@ -212,7 +210,7 @@ void StaticMesh::draw()
 	for (size_t i = 0; i < meshes.size(); i++)
 	{
 		meshes[i]->position = position;
-		meshes[i]->rotation = rotation;
+		meshes[i]->quaternion = quaternion;
 		meshes[i]->scaling = scaling;
 		meshes[i]->draw();
 	}

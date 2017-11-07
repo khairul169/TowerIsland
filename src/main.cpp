@@ -58,7 +58,7 @@ void Main::ready()
 
 	m_sphere = new StaticMesh();
 	m_sphere->loadMesh("sphere/sphere.obj");
-	m_sphere->position = vec3(0.0f, 3.0f, 0);
+	m_sphere->position = vec3(0.5f, 3.0f, 0);
 	m_sphere->scaling = vec3(0.5f);
 
 	// Create physics objects
@@ -71,7 +71,7 @@ void Main::ready()
 	p_sphere->setPosition(m_sphere->position);
 }
 
-static float rotation = 0.0f;
+static float flRotation = 0.0f;
 
 void Main::loop()
 {
@@ -86,8 +86,8 @@ void Main::loop()
 	}
 
 	// Update camera
-	rotation = fmod(rotation + 30.0f * flDelta, 360.0f);
-	vec3 origin = vec3(5 * sin(radians(rotation)), 2, 5 * cos(radians(rotation)));
+	flRotation = fmod(flRotation + 30.0f * flDelta, 360.0f);
+	vec3 origin = vec3(5 * sin(radians(flRotation)), 2, 5 * cos(radians(flRotation)));
 	camera->setLookAt(origin, vec3(0, 0, 0), vec3(0, 1, 0));
 
 	// Shaders binding
@@ -98,12 +98,13 @@ void Main::loop()
 	m_floor->draw();
 
 	m_crate->position = p_crate->getPosition();
-	m_crate->rotation.y = cos(radians(60.0f));
+	//m_crate->rotation.y = cos(radians(60.0f));
 	m_crate->draw();
 
-	//m_sphere->position.x = 2 * cos(radians(rotation));
-	//m_sphere->position.z = 2 * sin(radians(rotation));
+	//m_sphere->position.x = 2 * cos(radians(flRotation));
+	//m_sphere->position.z = 2 * sin(radians(flRotation));
 	m_sphere->position = p_sphere->getPosition();
+	m_sphere->quaternion = p_sphere->getQuaternion();
 	m_sphere->draw();
 
 	// Store last time value to a variable

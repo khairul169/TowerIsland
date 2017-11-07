@@ -48,7 +48,7 @@ public:
 	void setPosition(vec3 pos);
 
 	vec3 getPosition();
-	vec4 getRotation();
+	quat getQuaternion();
 };
 
 #endif // !PHYSICS_H
