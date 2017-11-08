@@ -19,24 +19,29 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\camera.h" />
-    <ClInclude Include="include\main.h" />
-    <ClInclude Include="include\meshloader.h" />
-    <ClInclude Include="include\physics.h" />
-    <ClInclude Include="include\shaders.h" />
-    <ClInclude Include="include\texloader.h" />
-    <ClInclude Include="include\utils.h" />
-    <ClInclude Include="include\window.h" />
+    <ClCompile Include="src\core\camera.cpp" />
+    <ClCompile Include="src\core\framebuffers.cpp" />
+    <ClCompile Include="src\core\main.cpp" />
+    <ClCompile Include="src\core\mesh.cpp" />
+    <ClCompile Include="src\core\physics.cpp" />
+    <ClCompile Include="src\core\renderer.cpp" />
+    <ClCompile Include="src\core\shaders.cpp" />
+    <ClCompile Include="src\core\staticmesh.cpp" />
+    <ClCompile Include="src\core\texloader.cpp" />
+    <ClCompile Include="src\core\utils.cpp" />
+    <ClCompile Include="src\core\window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\camera.cpp" />
-    <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\meshloader.cpp" />
-    <ClCompile Include="src\physics.cpp" />
-    <ClCompile Include="src\shaders.cpp" />
-    <ClCompile Include="src\texloader.cpp" />
-    <ClCompile Include="src\utils.cpp" />
-    <ClCompile Include="src\window.cpp" />
+    <ClInclude Include="include\core\camera.h" />
+    <ClInclude Include="include\core\framebuffers.h" />
+    <ClInclude Include="include\core\main.h" />
+    <ClInclude Include="include\core\mesh.h" />
+    <ClInclude Include="include\core\physics.h" />
+    <ClInclude Include="include\core\renderer.h" />
+    <ClInclude Include="include\core\shaders.h" />
+    <ClInclude Include="include\core\texloader.h" />
+    <ClInclude Include="include\core\utils.h" />
+    <ClInclude Include="include\core\window.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -95,13 +100,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>include/;thirdparty/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include/;include/core/;thirdparty/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <AdditionalLibraryDirectories>lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glew32.lib;glfw3.lib;ode_single.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glew32.lib;glfw3.lib;ode_single.lib;assimp-vc140-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -118,7 +123,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>include/;thirdparty/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include/;include/core/;thirdparty/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -126,7 +131,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <SubSystem>Console</SubSystem>
       <AdditionalLibraryDirectories>lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glew32.lib;glfw3.lib;ode_single.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glew32.lib;glfw3.lib;ode_single.lib;assimp-vc140-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

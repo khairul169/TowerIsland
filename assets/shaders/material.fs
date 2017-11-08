@@ -4,8 +4,8 @@
 in vec2 UV;
 in vec3 NORMAL;
 
-// Output
-out vec3 COLOR;
+// Ouput data
+layout(location = 0) out vec3 COLOR;
 
 uniform vec3 color;
 uniform sampler2D diffuse;
