@@ -1,36 +1,16 @@
 #include "main.h"
 
-void PhysicsManager::init()
+void PhysicsManager::Init()
 {
-	// Init ODE
-	dInitODE();
+	// Setup bullet
+	mBroadphase = new btDbvtBroadphase();
+	mCollisionConfiguration = new btDefaultCollisionConfiguration();
+	mDispatcher = new btCollisionDispatcher(mCollisionConfiguration);
+	mSolver = new btSequentialImpulseConstraintSolver;
+	mWorld = new btDiscreteDynamicsWorld(mDispatcher, mBroadphase, mSolver, mCollisionConfiguration);
 
-	// Create the world & space
-	world = dWorldCreate();
-	space = dHashSpaceCreate(0);
-
-	// Create joint group
-	contactgroup = dJointGroupCreate(0);
-
-	// Set world gravity
-	dWorldSetGravity(world, 0.0f, -1.92f, 0.0f);
-
-	// Set world damping
-	dWorldSetDamping(world, 0.01f, 0.01f);
-
-	// Create the floor plane
-	//dCreatePlane(space, 0, 1, 0, 0);
-
-	// Set ERP
-	dWorldSetERP(world, 0.2f);
-	dWorldSetCFM(world, 1e-5f);
-
-	// This function sets the velocity that interpenetrating objects will separate at. The default value is infinity.
-	dWorldSetContactMaxCorrectingVel(world, 0.9f);
-	dWorldSetContactSurfaceLayer(world, 0.001f);
-
-	// Set auto disable
-	dWorldSetAutoDisableFlag(world, false);
+	// Set gravity
+	mWorld->setGravity(btVector3(0, -9.8, 0));
 
 	// set variables
 	numOfInstances = 0;
@@ -39,185 +19,132 @@ void PhysicsManager::init()
 	accumulator = 0.0f;
 }
 
-static void nearCallback(void *data, dGeomID o1, dGeomID o2)
-{
-	// Object is invalid
-	if (o1 == NULL || o2 == NULL)
-		return;
-
-	// Get geometry body
-	dBodyID b1 = dGeomGetBody(o1);
-	dBodyID b2 = dGeomGetBody(o2);
-	
-	// exit without doing anything if the two bodies are connected by a joint
-	if (b1 && b2 && dAreConnectedExcluding(b1, b2, dJointTypeContact))
-		return;
-
-	dContact contact[MAX_CONTACTS];
-
-	// Contacts
-	for (int i = 0; i < MAX_CONTACTS; i++)
-	{
-		contact[i].surface.mode = dContactBounce | dContactSoftCFM;
-		contact[i].surface.mu = dInfinity;
-		contact[i].surface.mu2 = 0;
-		contact[i].surface.bounce = 0.1f;
-		contact[i].surface.bounce_vel = 0.1f;
-		contact[i].surface.soft_cfm = 0.01f;
-	}
-
-	// Collision test
-	if (int numc = dCollide(o1, o2, MAX_CONTACTS, &contact[0].geom, sizeof(dContact)))
-	{
-		for (int i = 0; i < numc; i++)
-		{
-			dJointID c = dJointCreateContact(mPhysicsMgr->world, mPhysicsMgr->contactgroup, contact + i);
-			dJointAttach(c, b1, b2);
-		}
-	}
-}
-
-void PhysicsManager::loop()
+void PhysicsManager::Loop()
 {
 	float step = 1.0f / 60.0f;
 	accumulator += mMain->flDelta;
 
-	//while (accumulator >= step)
+	while (accumulator >= step)
 	{
-		// Simulate collision
-		dSpaceCollide(space, 0, &nearCallback);
-
-		// Step the world
-		dWorldStep(world, 0.05f);
-
-		// Remove all temporary collision joints now that the world has been stepped
-		dJointGroupEmpty(contactgroup);
-
+		mWorld->stepSimulation(step, 10);
 		accumulator -= step;
 	}
 }
 
-void PhysicsManager::destroy()
+void PhysicsManager::Destroy()
 {
 	// Destroy everything
-	dJointGroupDestroy(contactgroup);
-	dSpaceDestroy(space);
-	dWorldDestroy(world);
-	dCloseODE();
+	delete mWorld;
+	delete mSolver;
+	delete mDispatcher;
+	delete mCollisionConfiguration;
+	delete mBroadphase;
 }
 
 // Create object
-PhysicsObject *PhysicsManager::createObject()
+PhysicsObject *PhysicsManager::CreateObject()
 {
-	PhysicsObject *obj = new PhysicsObject(this);
+	PhysicsObject *obj = new PhysicsObject();
 	obj->instanceID = numOfInstances;
 	objects.push_back(obj);
 	numOfInstances++;
 	return obj;
 }
 
-// Physics object
-PhysicsObject::PhysicsObject(PhysicsManager *mgr)
+// Physics Object
+
+void PhysicsObject::CreateSphereBody(float mass, float radius)
 {
-	body = dBodyCreate(mgr->world);
-	setPosition(vec3(0.0f));
+	// Collision shape
+	btVector3 mFallInertia(0, 0, 0);
+	mColShape = new btSphereShape(radius);
+	mColShape->calculateLocalInertia(mass, mFallInertia);
 
-	dBodySetData(body, (void*)this);
-
-	this->mgr = mgr;
-}
-
-void PhysicsObject::createSphereBody(float mass, float radius)
-{
-	// Set mass
-	dMass m;
-	dMassSetZero(&m);
-	dMassSetSphereTotal(&m, mass, radius);
-	dBodySetMass(body, &m);
-
-	// Create collision object
-	geometry = dCreateSphere(mgr->space, radius);
-	dGeomSetBody(geometry, body);
-}
-
-void PhysicsObject::createCubeBody(float mass, vec3 surface)
-{
-	// Set mass
-	dMass m;
-	dMassSetZero(&m);
-	dMassSetBoxTotal(&m, mass, surface.x, surface.y, surface.z);
-	dBodySetMass(body, &m);
-
-	// Create collision object
-	geometry = dCreateBox(mgr->space, surface.x, surface.y, surface.z);
-	dGeomSetBody(geometry, body);
-}
-
-void PhysicsObject::createTriMesh(vector<float> vertices, vector<unsigned int> indices)
-{
-	const int mVertexCount = vertices.size() / 3;
-	const int mIndexCount = indices.size();
-
-	//float (*mVertices)[3] = new float[mVertexCount][3];
-	dReal *mVertices = new dReal[mVertexCount];
-	dTriIndex *mIndices = new dTriIndex[mVertexCount];
-
-	/*for (int i = 0; i < mVertexCount; i++)
-	{
-		mVertices[i][0] = vertices[(i * 3) + 0];
-		mVertices[i][1] = vertices[(i * 3) + 1];
-		mVertices[i][2] = vertices[(i * 3) + 2];
-	}*/
-
-	for (int i = 0; i < mVertexCount; i++)
-	{
-		mVertices[i] = vertices[i];
-	}
-
-	for (int i = 0; i < mIndexCount; i++)
-	{
-		mIndices[i] = (dTriIndex)indices[i];
-	}
-
-	dTriMeshDataID m_dataID = dGeomTriMeshDataCreate();
-
-	//dGeomTriMeshDataBuildSingle(m_dataID, mVertices[0], 3 * sizeof(float), mVertexCount, &mIndices[0], mIndexCount, 3 * sizeof(dTriIndex));
-	//dGeomTriMeshDataPreprocess2(m_dataID, (1U << dTRIDATAPREPROCESS_BUILD_FACE_ANGLES), NULL);
-
-	dGeomTriMeshDataBuildSimple(m_dataID, mVertices, mVertexCount, mIndices, mIndexCount);
+	// Motion state
+	btDefaultMotionState* mMotionState = new btDefaultMotionState();
+	btRigidBody::btRigidBodyConstructionInfo mConstructionInfo(mass, mMotionState, mColShape, mFallInertia);
 	
-	geometry = dCreateTriMesh(mgr->space, m_dataID, 0, 0, 0);
+	// Create rigidbody
+	mBody = new btRigidBody(mConstructionInfo);
+	mPhysicsMgr->mWorld->addRigidBody(mBody);
+}
+
+void PhysicsObject::CreateCubeBody(float mass, vec3 extents)
+{
+	// Collision shape
+	btVector3 mFallInertia(0, 0, 0);
+	mColShape = new btBoxShape(btVector3(extents.x, extents.y, extents.z));
+	mColShape->calculateLocalInertia(mass, mFallInertia);
+
+	// Motion state
+	btDefaultMotionState* mMotionState = new btDefaultMotionState();
+	btRigidBody::btRigidBodyConstructionInfo mConstructionInfo(mass, mMotionState, mColShape, mFallInertia);
+
+	// Create rigidbody
+	mBody = new btRigidBody(mConstructionInfo);
+	mPhysicsMgr->mWorld->addRigidBody(mBody);
+}
+
+void PhysicsObject::CreateTriMesh(vector<float> vertices, vector<unsigned int> indices)
+{
+	btTriangleMesh *mTriMesh = new btTriangleMesh();
+
+	for (size_t i = 0; i < indices.size()/3; i++)
+	{
+		int index0 = indices[i * 3 + 0];
+		int index1 = indices[i * 3 + 1];
+		int index2 = indices[i * 3 + 2];
+
+		btVector3 vertex0(vertices[index0 * 3], vertices[index0 * 3 + 1], vertices[index0 * 3 + 2]);
+		btVector3 vertex1(vertices[index1 * 3], vertices[index1 * 3 + 1], vertices[index1 * 3 + 2]);
+		btVector3 vertex2(vertices[index2 * 3], vertices[index2 * 3 + 1], vertices[index2 * 3 + 2]);
+
+		mTriMesh->addTriangle(vertex0, vertex1, vertex2);
+	}
+
+	// Create collision shape
+	mColShape = new btBvhTriangleMeshShape(mTriMesh, false);// , true);
+
+	// Motion state
+	btDefaultMotionState* mMotionState = new btDefaultMotionState();
+	btRigidBody::btRigidBodyConstructionInfo mConstructionInfo(0, mMotionState, mColShape, btVector3(0, 0, 0));
+
+	// Create rigidbody
+	mBody = new btRigidBody(mConstructionInfo);
+	mPhysicsMgr->mWorld->addRigidBody(mBody);
 }
 
 void PhysicsObject::setPosition(vec3 pos)
 {
-	dBodySetPosition(body, pos.x, pos.y, pos.z);
+	btTransform mTransform = mBody->getWorldTransform();
+	mTransform.setOrigin(btVector3(pos.x, pos.y, pos.z));
+	mBody->setWorldTransform(mTransform);
 }
 
 void PhysicsObject::setLinearVelocity(vec3 lv)
 {
-	dBodySetLinearVel(body, lv.x, lv.y, lv.z);
+	mBody->setLinearVelocity(btVector3(lv.x, lv.y, lv.z));
 }
 
 vec3 PhysicsObject::getPosition()
 {
-	const dReal *bPos = dBodyGetPosition(body);
-	return vec3(bPos[0], bPos[1], bPos[2]);
+	btVector3 mOrigin = mBody->getWorldTransform().getOrigin();
+	return vec3(mOrigin.getX(), mOrigin.getY(), mOrigin.getZ());
 }
 
 quat PhysicsObject::getQuaternion()
 {
-	const dReal* quaternion = dBodyGetQuaternion(body);
-	return quat(quaternion[0], quaternion[1], quaternion[2], quaternion[3]);
+	btQuaternion mQuat = mBody->getWorldTransform().getRotation();
+	return quat(mQuat.getW(), mQuat.getX(), mQuat.getY(), mQuat.getZ());
 }
 
 vec3 PhysicsObject::getLinearVelocity()
 {
-	const dReal *bVel = dBodyGetLinearVel(body);
-	return vec3(bVel[0], bVel[1], bVel[2]);
+	btVector3 mLinearVelocity = mBody->getLinearVelocity();
+	return vec3(mLinearVelocity.getX(), mLinearVelocity.getY(), mLinearVelocity.getZ());
 }
 
 void PhysicsObject::onColliding(PhysicsObject* with)
 {
-	printf("%i colliding with %i\n", instanceID, with->instanceID);
+	//printf("%i colliding with %i\n", instanceID, with->instanceID);
 }

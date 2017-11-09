@@ -36,7 +36,7 @@ void Main::Init()
 
 	// Setup physics
 	mPhysicsMgr = new PhysicsManager();
-	mPhysicsMgr->init();
+	mPhysicsMgr->Init();
 
 	// Setup GUI
 	mInterface = new GUI();
@@ -52,7 +52,7 @@ void Main::Init()
 		mWindow->loop();
 
 		// Physics loop
-		mPhysicsMgr->loop();
+		mPhysicsMgr->Loop();
 
 		// Scene loop
 		this->Loop();
@@ -62,7 +62,7 @@ void Main::Init()
 	}
 
 	// Destroy everything
-	mPhysicsMgr->destroy();
+	mPhysicsMgr->Destroy();
 	mWindow->free();
 }
 
@@ -83,12 +83,12 @@ void Main::Ready()
 	m_sphere->scaling = vec3(0.5f);
 
 	// Create physics objects
-	p_crate = mPhysicsMgr->createObject();
-	p_crate->createCubeBody(1.0f, vec3(1.0f));
+	p_crate = mPhysicsMgr->CreateObject();
+	p_crate->CreateCubeBody(1.0f, vec3(0.5f));
 	p_crate->setPosition(m_crate->position);
 
-	p_sphere = mPhysicsMgr->createObject();
-	p_sphere->createSphereBody(1.0f, 0.5f);
+	p_sphere = mPhysicsMgr->CreateObject();
+	p_sphere->CreateSphereBody(1.0f, 0.5f);
 	p_sphere->setPosition(m_sphere->position);
 }
 
@@ -145,7 +145,7 @@ void Main::Loop()
 		cubeDir = normalize(cubeDir);
 
 	vec3 lv = p_sphere->getLinearVelocity();
-	vec3 motion = cubeDir * 1.5f;
+	vec3 motion = cubeDir * 2.5f;
 
 	if (length(motion) > 0.0f)
 	{
@@ -156,7 +156,7 @@ void Main::Loop()
 	if (mWindow->getKey(GLFW_KEY_SPACE) && !hasJumping)
 	{
 		hasJumping = true;
-		lv.y = 3.0f;
+		lv.y = 5.0f;
 	}
 	if (!mWindow->getKey(GLFW_KEY_SPACE) && hasJumping)
 	{

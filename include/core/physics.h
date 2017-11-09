@@ -4,32 +4,22 @@
 #include "main.h"
 #include <vector>
 
-// ODE library
-#define dSINGLE
-#include "ode/ode.h"
-
-const int MAX_BODIES = 1024;
-const int MAX_CONTACTS = 10;
+// Bulet physics
+#include "bullet3/btBulletDynamicsCommon.h"
 
 class PhysicsManager;
-
 class PhysicsObject
 {
 public:
 	size_t instanceID;
-	dBodyID body;
-	dGeomID geometry;
 
-private:
-	PhysicsManager *mgr;
+	btCollisionShape* mColShape;
+	btRigidBody* mBody;
 
 public:
-	PhysicsObject() {}
-	PhysicsObject(PhysicsManager *mgr);
-
-	void createSphereBody(float mass, float radius);
-	void createCubeBody(float mass, vec3 surface);
-	void createTriMesh(vector<float> vertices, vector<unsigned int> indices);
+	void CreateSphereBody(float mass, float radius);
+	void CreateCubeBody(float mass, vec3 extents);
+	void CreateTriMesh(vector<float> vertices, vector<unsigned int> indices);
 
 	void setPosition(vec3 pos);
 	void setLinearVelocity(vec3 lv);
@@ -43,23 +33,27 @@ public:
 
 class PhysicsManager
 {
-public:
-	dWorldID world;
-	dSpaceID space;
-	dJointGroupID contactgroup;
-
 private:
+	btBroadphaseInterface* mBroadphase;
+	btDefaultCollisionConfiguration* mCollisionConfiguration;
+	btCollisionDispatcher* mDispatcher;
+	btSequentialImpulseConstraintSolver* mSolver;
+
+public:
+	btDiscreteDynamicsWorld* mWorld;
+
+	// Instances
 	size_t numOfInstances;
 	vector<PhysicsObject*> objects;
 
 	float accumulator;
 
 public:
-	void init();
-	void loop();
-	void destroy();
+	void Init();
+	void Loop();
+	void Destroy();
 
-	PhysicsObject *createObject();
+	PhysicsObject *CreateObject();
 };
 
 #endif // !PHYSICS_H

@@ -145,7 +145,7 @@ void StaticMesh::Parse(const aiScene* scene)
 		}
 		else if (colVertices.size() > 0 && colIndices.size() > 0)
 		{
-			mPhysicsMgr->createObject()->createTriMesh(colVertices, colIndices);
+			mPhysicsMgr->CreateObject()->CreateTriMesh(colVertices, colIndices);
 		}
 	}
 }

@@ -3,7 +3,7 @@
 
 #ifdef _WIN32
 #define WIN32
-
+#pragma warning(disable:4305)
 #pragma warning(disable:4996)
 #pragma warning(disable:4819)
 #endif
