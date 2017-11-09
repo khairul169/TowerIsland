@@ -70,7 +70,7 @@ void Main::Ready()
 {
 	// Load mesh
 	m_floor = new StaticMesh();
-	m_floor->LoadMesh("floor/floor.obj");
+	m_floor->LoadMesh("floor/floor.dae");
 
 	m_crate = new StaticMesh();
 	m_crate->LoadMesh("crate/crate.obj");
@@ -79,7 +79,7 @@ void Main::Ready()
 
 	m_sphere = new StaticMesh();
 	m_sphere->LoadMesh("sphere/sphere.obj");
-	m_sphere->position = vec3(0.0f, 3.0f, 0);
+	m_sphere->position = vec3(0.0f, 2.5f, 0);
 	m_sphere->scaling = vec3(0.5f);
 
 	// Create physics objects
@@ -94,12 +94,24 @@ void Main::Ready()
 
 static float flRotation = 0.0f;
 static bool hasJumping = false;
+static float flNextPrintFPS = 0.0f;
 
 void Main::Loop()
 {
 	// Get time
 	flTime = (float)glfwGetTime();
+	
+	if (flLastTime <= 0.0f)
+		flLastTime = flTime + 0.01f;
+	
 	flDelta = flTime-flLastTime;
+
+	flNextPrintFPS -= flDelta;
+	if (flNextPrintFPS <= 0.0f)
+	{
+		//printf("FPS: %i\n", (int)(1.0f / flDelta));
+		flNextPrintFPS = 1.0f;
+	}
 
 	// Reset time
 	if (flTime > 3600.0f)

@@ -10,7 +10,7 @@ void StaticMesh::LoadMesh(const char* path)
 	basepath = filename.substr(0, filename.find_last_of("/") + 1);
 
 	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile(filename, aiProcess_FlipUVs | aiProcess_CalcTangentSpace | aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices);
+	const aiScene* scene = importer.ReadFile(filename, aiProcess_FlipUVs | aiProcess_CalcTangentSpace | aiProcess_PreTransformVertices | aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices);
 
 	if (!scene)
 	{
@@ -66,13 +66,16 @@ void StaticMesh::Parse(const aiScene* scene)
 	{
 		// Mesh
 		aiMesh* mMesh = scene->mMeshes[i];
-		Mesh* mesh = new Mesh();
 
-		// Set material
-		mesh->material = materials[mMesh->mMaterialIndex];
-
+		// Vertex buffers
 		vector<float> buffers;
 		vector<unsigned int> indices;
+
+		// Collision buffers
+		vector<float> colVertices;
+		vector<unsigned int> colIndices;
+
+		bool generateCollision = (string(mMesh->mName.C_Str()).rfind("-col") != -1);
 
 		for (unsigned int i = 0; i < mMesh->mNumVertices; i++)
 		{
@@ -80,6 +83,13 @@ void StaticMesh::Parse(const aiScene* scene)
 			buffers.push_back(mMesh->mVertices[i].x);
 			buffers.push_back(mMesh->mVertices[i].y);
 			buffers.push_back(mMesh->mVertices[i].z);
+
+			if (generateCollision)
+			{
+				colVertices.push_back(mMesh->mVertices[i].x);
+				colVertices.push_back(mMesh->mVertices[i].y);
+				colVertices.push_back(mMesh->mVertices[i].z);
+			}
 
 			// Vars
 			vec3 normals = vec3(0.0f);
@@ -113,14 +123,30 @@ void StaticMesh::Parse(const aiScene* scene)
 			for (int i = 0; i < 3; i++)
 			{
 				indices.push_back(mFace.mIndices[i]);
+
+				if (generateCollision)
+				{
+					colIndices.push_back(mFace.mIndices[i]);
+				}
 			}
 		}
 
-		// Load the mesh
-		mesh->Create(buffers, indices);
+		if (!generateCollision)
+		{
+			// Create the mesh
+			Mesh* mesh = new Mesh();
+			mesh->Create(buffers, indices);
 
-		// Append mesh
-		meshes.push_back(mesh);
+			// Set material
+			mesh->material = materials[mMesh->mMaterialIndex];
+
+			// Append mesh
+			meshes.push_back(mesh);
+		}
+		else if (colVertices.size() > 0 && colIndices.size() > 0)
+		{
+			mPhysicsMgr->createObject()->createTriMesh(colVertices, colIndices);
+		}
 	}
 }
 

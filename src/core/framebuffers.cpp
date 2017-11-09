@@ -1,6 +1,6 @@
 #include "main.h"
 
-void Framebuffers::create(int width, int height)
+void Framebuffers::Create(int width, int height)
 {
 	// Create framebuffer
 	glGenFramebuffers(1, &fbID);
@@ -65,7 +65,7 @@ void Framebuffers::create(int width, int height)
 	this->height = height;
 }
 
-void Framebuffers::resize(int width, int height)
+void Framebuffers::Resize(int width, int height)
 {
 	if (renderTex)
 	{
@@ -89,14 +89,14 @@ void Framebuffers::resize(int width, int height)
 	this->height = height;
 }
 
-void Framebuffers::begin()
+void Framebuffers::Begin()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, fbID);
 	glViewport(0, 0, width, height);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void Framebuffers::end()
+void Framebuffers::End()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

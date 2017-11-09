@@ -21,11 +21,11 @@ public:
 		this->depthTex = enableDepthTex;
 	}
 
-	void create(int width, int height);
-	void resize(int width, int height);
+	void Create(int width, int height);
+	void Resize(int width, int height);
 
-	void begin();
-	void end();
+	void Begin();
+	void End();
 };
 
 #endif // !FRAMEBUFFERS_H

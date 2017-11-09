@@ -19,7 +19,7 @@ void PhysicsManager::init()
 	dWorldSetDamping(world, 0.01f, 0.01f);
 
 	// Create the floor plane
-	dCreatePlane(space, 0, 1, 0, 0);
+	//dCreatePlane(space, 0, 1, 0, 0);
 
 	// Set ERP
 	dWorldSetERP(world, 0.2f);
@@ -35,22 +35,28 @@ void PhysicsManager::init()
 	// set variables
 	numOfInstances = 0;
 	objects.clear();
+
+	accumulator = 0.0f;
 }
 
 static void nearCallback(void *data, dGeomID o1, dGeomID o2)
 {
-	// Temporary index for each contact
-	int i;
+	// Object is invalid
+	if (o1 == NULL || o2 == NULL)
+		return;
 
-	// Get the dynamics body for each geom
+	// Get geometry body
 	dBodyID b1 = dGeomGetBody(o1);
 	dBodyID b2 = dGeomGetBody(o2);
+	
+	// exit without doing anything if the two bodies are connected by a joint
+	if (b1 && b2 && dAreConnectedExcluding(b1, b2, dJointTypeContact))
+		return;
 
-	// Create an array of dContact objects to hold the contact joints
 	dContact contact[MAX_CONTACTS];
 
-	// Set the joint properties of each contact.
-	for (i = 0; i < MAX_CONTACTS; i++)
+	// Contacts
+	for (int i = 0; i < MAX_CONTACTS; i++)
 	{
 		contact[i].surface.mode = dContactBounce | dContactSoftCFM;
 		contact[i].surface.mu = dInfinity;
@@ -60,19 +66,10 @@ static void nearCallback(void *data, dGeomID o1, dGeomID o2)
 		contact[i].surface.soft_cfm = 0.01f;
 	}
 
-	if (b1 && b2)
-	{
-		PhysicsObject* object1 = (PhysicsObject*)dBodyGetData(b1);
-		PhysicsObject* object2 = (PhysicsObject*)dBodyGetData(b2);
-
-		object1->onColliding(object2);
-		object2->onColliding(object1);
-	}
-
 	// Collision test
 	if (int numc = dCollide(o1, o2, MAX_CONTACTS, &contact[0].geom, sizeof(dContact)))
 	{
-		for (i = 0; i < numc; i++)
+		for (int i = 0; i < numc; i++)
 		{
 			dJointID c = dJointCreateContact(mPhysicsMgr->world, mPhysicsMgr->contactgroup, contact + i);
 			dJointAttach(c, b1, b2);
@@ -82,14 +79,22 @@ static void nearCallback(void *data, dGeomID o1, dGeomID o2)
 
 void PhysicsManager::loop()
 {
-	// Simulate collision
-	dSpaceCollide(space, 0, &nearCallback);
+	float step = 1.0f / 60.0f;
+	accumulator += mMain->flDelta;
 
-	// Step the world
-	dWorldStep(world, 1.0f/30.0f);
+	//while (accumulator >= step)
+	{
+		// Simulate collision
+		dSpaceCollide(space, 0, &nearCallback);
 
-	// Remove all temporary collision joints now that the world has been stepped
-	dJointGroupEmpty(contactgroup);
+		// Step the world
+		dWorldStep(world, 0.05f);
+
+		// Remove all temporary collision joints now that the world has been stepped
+		dJointGroupEmpty(contactgroup);
+
+		accumulator -= step;
+	}
 }
 
 void PhysicsManager::destroy()
@@ -148,6 +153,42 @@ void PhysicsObject::createCubeBody(float mass, vec3 surface)
 	dGeomSetBody(geometry, body);
 }
 
+void PhysicsObject::createTriMesh(vector<float> vertices, vector<unsigned int> indices)
+{
+	const int mVertexCount = vertices.size() / 3;
+	const int mIndexCount = indices.size();
+
+	//float (*mVertices)[3] = new float[mVertexCount][3];
+	dReal *mVertices = new dReal[mVertexCount];
+	dTriIndex *mIndices = new dTriIndex[mVertexCount];
+
+	/*for (int i = 0; i < mVertexCount; i++)
+	{
+		mVertices[i][0] = vertices[(i * 3) + 0];
+		mVertices[i][1] = vertices[(i * 3) + 1];
+		mVertices[i][2] = vertices[(i * 3) + 2];
+	}*/
+
+	for (int i = 0; i < mVertexCount; i++)
+	{
+		mVertices[i] = vertices[i];
+	}
+
+	for (int i = 0; i < mIndexCount; i++)
+	{
+		mIndices[i] = (dTriIndex)indices[i];
+	}
+
+	dTriMeshDataID m_dataID = dGeomTriMeshDataCreate();
+
+	//dGeomTriMeshDataBuildSingle(m_dataID, mVertices[0], 3 * sizeof(float), mVertexCount, &mIndices[0], mIndexCount, 3 * sizeof(dTriIndex));
+	//dGeomTriMeshDataPreprocess2(m_dataID, (1U << dTRIDATAPREPROCESS_BUILD_FACE_ANGLES), NULL);
+
+	dGeomTriMeshDataBuildSimple(m_dataID, mVertices, mVertexCount, mIndices, mIndexCount);
+	
+	geometry = dCreateTriMesh(mgr->space, m_dataID, 0, 0, 0);
+}
+
 void PhysicsObject::setPosition(vec3 pos)
 {
 	dBodySetPosition(body, pos.x, pos.y, pos.z);
@@ -178,5 +219,5 @@ vec3 PhysicsObject::getLinearVelocity()
 
 void PhysicsObject::onColliding(PhysicsObject* with)
 {
-	//printf("%i colliding with %i\n", instanceID, with->instanceID);
+	printf("%i colliding with %i\n", instanceID, with->instanceID);
 }

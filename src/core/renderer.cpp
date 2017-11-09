@@ -4,14 +4,19 @@ void VisualRender::init()
 {
 	// Setup screen space
 	mViewportFBO = new Framebuffers();
-	mViewportFBO->create(mWindow->width, mWindow->height);
+	mViewportFBO->Create(mWindow->width, mWindow->height);
 
 	// Post-processing shaders
 	mChromaticPostFX = new Framebuffers();
-	mChromaticPostFX->create(mWindow->width, mWindow->height);
+	mChromaticPostFX->Create(mWindow->width, mWindow->height);
 
 	// Setup canvas
-	mViewportCanvas = new FramebufferCanvas(mChromaticPostFX);
+	bool iEnablePostProcessing = false;
+	
+	if (iEnablePostProcessing)
+		mViewportCanvas = new FramebufferCanvas(mChromaticPostFX);
+	else
+		mViewportCanvas = new FramebufferCanvas(mViewportFBO);
 
 	// Setup mesh
 	mChromaticMesh = new QuadMesh();
@@ -24,8 +29,8 @@ void VisualRender::init()
 void VisualRender::resized()
 {
 	// Resize framebuffer size
-	mViewportFBO->resize(mWindow->width, mWindow->height);
-	mChromaticPostFX->resize(mWindow->width, mWindow->height);
+	mViewportFBO->Resize(mWindow->width, mWindow->height);
+	mChromaticPostFX->Resize(mWindow->width, mWindow->height);
 }
 
 void VisualRender::loop()
@@ -44,18 +49,18 @@ void VisualRender::loop()
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// Render to our framebuffer
-	mViewportFBO->begin();
+	mViewportFBO->Begin();
 
 	// Render spatial scene
 	mMain->Render();
 
 	// End rendering
-	mViewportFBO->end();
+	mViewportFBO->End();
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// Post effect
-	mChromaticPostFX->begin();
+	mChromaticPostFX->Begin();
 
 	// Render post fx
 	mChromaticShaders->Bind();
@@ -63,7 +68,7 @@ void VisualRender::loop()
 	mChromaticMesh->Draw();
 
 	// End rendering
-	mChromaticPostFX->end();
+	mChromaticPostFX->End();
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

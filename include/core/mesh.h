@@ -11,6 +11,8 @@
 
 using namespace std;
 
+class PhysicsObject;
+
 class Material
 {
 public:
@@ -36,12 +38,16 @@ public:
 	quat quaternion;
 	vec3 scaling;
 
+	// Physics Object
+	PhysicsObject* physicsBody;
+
 public:
 	Mesh()
 	{
 		position = vec3(0.0f);
 		quaternion = quat();
 		scaling = vec3(1.0f);
+		physicsBody = NULL;
 	}
 
 	void Create(vector<float> buffers, vector<unsigned int> indices);
