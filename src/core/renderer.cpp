@@ -6,14 +6,26 @@ void VisualRender::init()
 	mViewportFBO = new Framebuffers();
 	mViewportFBO->create(mWindow->width, mWindow->height);
 
+	// Post-processing shaders
+	mChromaticPostFX = new Framebuffers();
+	mChromaticPostFX->create(mWindow->width, mWindow->height);
+
 	// Setup canvas
-	mViewportCanvas = new FramebufferCanvas(mViewportFBO);
+	mViewportCanvas = new FramebufferCanvas(mChromaticPostFX);
+
+	// Setup mesh
+	mChromaticMesh = new QuadMesh();
+
+	// Load shaders
+	mChromaticShaders = new PostFxShaders();
+	mChromaticShaders->Load("fx_chromatic");
 }
 
 void VisualRender::resized()
 {
 	// Resize framebuffer size
 	mViewportFBO->resize(mWindow->width, mWindow->height);
+	mChromaticPostFX->resize(mWindow->width, mWindow->height);
 }
 
 void VisualRender::loop()
@@ -39,7 +51,20 @@ void VisualRender::loop()
 
 	// End rendering
 	mViewportFBO->end();
+	
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	// Post effect
+	mChromaticPostFX->begin();
+
+	// Render post fx
+	mChromaticShaders->Bind();
+	mChromaticShaders->SetUniforms(mViewportFBO->renderTexID, mViewportFBO->depthTexID);
+	mChromaticMesh->Draw();
+
+	// End rendering
+	mChromaticPostFX->end();
+	
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// Reset viewport
@@ -48,6 +73,8 @@ void VisualRender::loop()
 
 	// Clear the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
 
 	// Disable depth test & face culling
 	glDisable(GL_DEPTH_TEST);

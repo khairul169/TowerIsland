@@ -13,9 +13,16 @@ class VisualRender
 private:
 	// Screen framebuffer
 	Framebuffers* mViewportFBO;
+	Framebuffers* mChromaticPostFX;
 
 	// Canvas
-	FramebufferCanvas *mViewportCanvas;
+	FramebufferCanvas* mViewportCanvas;
+
+	// Mesh
+	QuadMesh* mChromaticMesh;
+
+	// Shaders
+	PostFxShaders* mChromaticShaders;
 
 public:
 	// Methods

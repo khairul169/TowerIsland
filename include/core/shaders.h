@@ -62,19 +62,16 @@ public:
 	void SetTexture(Texture *tex);
 };
 
-class ScreenShaders: public Shaders
+class PostFxShaders: public Shaders
 {
 private:
 	GLuint mProjectionID;
 	GLuint renderedTextureUniform, depthTextureUniform;
-	GLuint timeUniform;
-
-	mat4 mProjection;
 
 public:
 	void ShadersLoaded();
 	void Bind();
-	void SetUniforms(GLuint renderTex, GLuint depthTex, float time);
+	void SetUniforms(GLuint renderTex, GLuint depthTex);
 };
 
 class CanvasShaders: public Shaders

@@ -12,5 +12,5 @@ void GUI::Redraw()
 	mMain->RenderGUI();
 
 	// Render other gui
-	m_TitleImage->Draw(vec2(0, mWindow->height-(m_TitleImage->texture->height * 0.8f)), 0.8f);
+	m_TitleImage->Draw(vec2(0, mWindow->height - m_TitleImage->texture->height));
 }

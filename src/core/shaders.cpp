@@ -175,7 +175,9 @@ void MaterialShaders::SetTexture(Texture *tex)
 	glUniform1i(diffuseUniform, 0);
 }
 
-void ScreenShaders::ShadersLoaded()
+// Post effect shaders
+
+void PostFxShaders::ShadersLoaded()
 {
 	Shaders::ShadersLoaded();
 
@@ -184,20 +186,18 @@ void ScreenShaders::ShadersLoaded()
 
 	renderedTextureUniform = glGetUniformLocation(programID, "renderedTexture");
 	depthTextureUniform = glGetUniformLocation(programID, "depthTexture");
-
-	timeUniform = glGetUniformLocation(programID, "time");
 }
 
-void ScreenShaders::Bind()
+void PostFxShaders::Bind()
 {
 	Shaders::Bind();
 
 	// Projection Matrix
-	mProjection = ortho(0.0f, 1.0f, 0.0f, 1.0f);
+	mat4 mProjection = ortho(0.0f, 1.0f, 0.0f, 1.0f);
 	glUniformMatrix4fv(mProjectionID, 1, GL_FALSE, &mProjection[0][0]);
 }
 
-void ScreenShaders::SetUniforms(GLuint renderTex, GLuint depthTex, float time)
+void PostFxShaders::SetUniforms(GLuint renderTex, GLuint depthTex)
 {
 	// Render Texture
 	glActiveTexture(GL_TEXTURE0);
@@ -208,9 +208,6 @@ void ScreenShaders::SetUniforms(GLuint renderTex, GLuint depthTex, float time)
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, depthTex);
 	glUniform1i(depthTextureUniform, 1);
-
-	// Time
-	glUniform1f(timeUniform, time);
 }
 
 // Canvas Shaders

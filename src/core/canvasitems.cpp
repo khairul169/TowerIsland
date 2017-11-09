@@ -7,7 +7,7 @@ void FramebufferCanvas::Draw(vec2 pos, vec2 size)
 
 	// Set uniforms
 	mShadersMgr->mCanvas->SetTransform(pos, size, true);
-	mShadersMgr->mCanvas->SetTexture(fbo->renderTex);
+	mShadersMgr->mCanvas->SetTexture(fbo->renderTexID);
 
 	// Draw the mesh
 	mesh->Draw();
