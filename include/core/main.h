@@ -29,6 +29,8 @@ using namespace glm;
 #include "physics.h"
 #include "renderer.h"
 #include "framebuffers.h"
+#include "interface.h"
+#include "canvasitems.h"
 #include "utils.h"
 
 #define PROJECT_NAME "Tower Island"
@@ -36,11 +38,6 @@ using namespace glm;
 class Main
 {
 public:
-	// window handler
-	Window *window;
-	Camera *camera;
-	PhysicsManager *physicsMgr;
-
 	// variables
 	bool isActive;
 
@@ -57,17 +54,18 @@ private:
 	PhysicsObject *p_sphere;
 
 public:
-	MaterialShaders *materialShaders;
-
-public:
-	void init();
-	void ready();
-	void loop();
-	void render();
-
-	Camera *getCamera() { return camera; }
+	void Init();
+	void Ready();
+	void Loop();
+	void Render();
+	void RenderGUI();
 };
 
-extern Main *mainObject;
+extern Main *mMain;
+extern Window *mWindow;
+extern Camera *mCamera;
+extern ShadersManager *mShadersMgr;
+extern PhysicsManager *mPhysicsMgr;
+extern GUI *mInterface;
 
 #endif

@@ -1,83 +1,93 @@
 #include "main.h"
 
-Main *mainObject;
+// Objects handler
+Main *mMain;
+Window *mWindow;
+Camera *mCamera;
+ShadersManager *mShadersMgr;
+PhysicsManager *mPhysicsMgr;
+GUI *mInterface;
 
 // main procedure entry
 int main(int argc, char **argv)
 {
-	mainObject = new Main();
-	mainObject->init();
+	mMain = new Main();
+	mMain->Init();
 	return 0;
 }
 
-void Main::init()
+void Main::Init()
 {
 	isActive = true;
 	flTime = 0.0f;
 
 	// Init window
-	window = new Window();
-	window->init();
+	mWindow = new Window();
+	mWindow->init();
 
 	// Setup camera
-	camera = new Camera();
-	camera->setPerspective(radians(60.0f), window->getAspectRatio(), 0.1f, 100.0f);
-	camera->setLookAt(vec3(4, 4, 3), vec3(0, 1, 0), vec3(0, 1, 0));
+	mCamera = new Camera();
+	mCamera->SetPerspective(radians(60.0f), mWindow->getAspectRatio(), 0.1f, 100.0f);
+	mCamera->SetLookAt(vec3(4, 4, 3), vec3(0, 1, 0), vec3(0, 1, 0));
+
+	// Shaders manager
+	mShadersMgr = new ShadersManager();
+	mShadersMgr->Init();
 
 	// Setup physics
-	physicsMgr = new PhysicsManager();
-	physicsMgr->init();
+	mPhysicsMgr = new PhysicsManager();
+	mPhysicsMgr->init();
+
+	// Setup GUI
+	mInterface = new GUI();
+	mInterface->Init();
 
 	// Our game is ready
-	ready();
+	this->Ready();
 
 	// Mainloop
-	while (!window->canDestroyed())
+	while (!mWindow->canDestroyed())
 	{
 		// Window & render loop
-		window->loop();
+		mWindow->loop();
 
 		// Physics loop
-		physicsMgr->loop();
+		mPhysicsMgr->loop();
 
 		// Scene loop
-		this->loop();
+		this->Loop();
 
 		// Swap gl buffers
-		window->swapBuffers();
+		mWindow->swapBuffers();
 	}
 
 	// Destroy everything
-	physicsMgr->destroy();
-	window->free();
+	mPhysicsMgr->destroy();
+	mWindow->free();
 }
 
-void Main::ready()
+void Main::Ready()
 {
-	// Load shaders
-	materialShaders = new MaterialShaders();
-	materialShaders->load("material");
-
 	// Load mesh
 	m_floor = new StaticMesh();
-	m_floor->loadMesh("floor/floor.obj");
+	m_floor->LoadMesh("floor/floor.obj");
 
 	m_crate = new StaticMesh();
-	m_crate->loadMesh("crate/crate.obj");
+	m_crate->LoadMesh("crate/crate.obj");
 	m_crate->position = vec3(0, 1.0f, 0);
 	m_crate->scaling = vec3(0.5f);
 
 	m_sphere = new StaticMesh();
-	m_sphere->loadMesh("sphere/sphere.obj");
+	m_sphere->LoadMesh("sphere/sphere.obj");
 	m_sphere->position = vec3(0.0f, 3.0f, 0);
 	m_sphere->scaling = vec3(0.5f);
 
 	// Create physics objects
-	p_crate = physicsMgr->createObject();
+	p_crate = mPhysicsMgr->createObject();
 	p_crate->createCubeBody(1.0f, vec3(1.0f));
 	p_crate->setPosition(m_crate->position);
 
-	p_sphere = physicsMgr->createObject();
+	p_sphere = mPhysicsMgr->createObject();
 	p_sphere->createSphereBody(1.0f, 0.5f);
 	p_sphere->setPosition(m_sphere->position);
 }
@@ -85,7 +95,7 @@ void Main::ready()
 static float flRotation = 0.0f;
 static bool hasJumping = false;
 
-void Main::loop()
+void Main::Loop()
 {
 	// Get time
 	flTime = (float)glfwGetTime();
@@ -101,22 +111,22 @@ void Main::loop()
 	flRotation = fmod(flRotation + 30.0f * flDelta, 360.0f);
 	//flRotation = 60.0f;
 	vec3 origin = vec3(5 * sin(radians(flRotation)), 2, 5 * cos(radians(flRotation)));
-	camera->setLookAt(origin, vec3(0, 0, 0), vec3(0, 1, 0));
+	mCamera->SetLookAt(origin, vec3(0, 0, 0), vec3(0, 1, 0));
 
 	vec3 cubeDir = vec3(0.0f);
-	vec3 forwardDir = Utils::getAxis(camera->getView(), 2);
-	vec3 strafeDir = Utils::getAxis(camera->getView(), 0);
+	vec3 forwardDir = Utils::getAxis(mCamera->view, 2);
+	vec3 strafeDir = Utils::getAxis(mCamera->view, 0);
 	
-	if (window->getKey(GLFW_KEY_W))
+	if (mWindow->getKey(GLFW_KEY_W))
 		cubeDir -= forwardDir;
 
-	if (window->getKey(GLFW_KEY_S))
+	if (mWindow->getKey(GLFW_KEY_S))
 		cubeDir += forwardDir;
 
-	if (window->getKey(GLFW_KEY_A))
+	if (mWindow->getKey(GLFW_KEY_A))
 		cubeDir -= strafeDir;
 
-	if (window->getKey(GLFW_KEY_D))
+	if (mWindow->getKey(GLFW_KEY_D))
 		cubeDir += strafeDir;
 
 	if (length(cubeDir) > 0.0f)
@@ -131,12 +141,12 @@ void Main::loop()
 		lv.z = Utils::lerp(lv.z, motion.z, 5 * flDelta);
 	}
 
-	if (window->getKey(GLFW_KEY_SPACE) && !hasJumping)
+	if (mWindow->getKey(GLFW_KEY_SPACE) && !hasJumping)
 	{
 		hasJumping = true;
 		lv.y = 3.0f;
 	}
-	if (!window->getKey(GLFW_KEY_SPACE) && hasJumping)
+	if (!mWindow->getKey(GLFW_KEY_SPACE) && hasJumping)
 	{
 		hasJumping = false;
 	}
@@ -153,25 +163,15 @@ void Main::loop()
 	flLastTime = flTime;
 }
 
-void Main::render()
+void Main::Render()
 {
-	// Clear the screen
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	// Set default clear color
-	glClearColor(152.0f / 255.0f, 186.0f / 255.0f, 242.0f / 255.0f, 1.0f);
-
-	// Enable depth test
-	glEnable(GL_DEPTH_TEST);
-
-	// Accept fragment if it closer to the camera than the former one
-	glDepthFunc(GL_LESS);
-
-	// Cull face
-	glEnable(GL_CULL_FACE);
-
 	// Draw our mesh
-	m_floor->draw();
-	m_crate->draw();
-	m_sphere->draw();
+	m_floor->Draw();
+	m_crate->Draw();
+	m_sphere->Draw();
+}
+
+void Main::RenderGUI()
+{
+
 }

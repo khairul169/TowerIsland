@@ -6,18 +6,16 @@
 #include "shaders.h"
 #include "mesh.h"
 #include "framebuffers.h"
+#include "canvasitems.h"
 
 class VisualRender
 {
 private:
 	// Screen framebuffer
-	Framebuffers* screenFramebuffers;
+	Framebuffers* mViewportFBO;
 
-	// Framebuffer quad
-	QuadMesh* screenQuad;
-
-	// Shaders
-	ScreenShaders* screenShaders;
+	// Canvas
+	FramebufferCanvas *mViewportCanvas;
 
 public:
 	// Methods

@@ -20,7 +20,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core\camera.cpp" />
+    <ClCompile Include="src\core\canvasitems.cpp" />
     <ClCompile Include="src\core\framebuffers.cpp" />
+    <ClCompile Include="src\core\interface.cpp" />
     <ClCompile Include="src\core\main.cpp" />
     <ClCompile Include="src\core\mesh.cpp" />
     <ClCompile Include="src\core\physics.cpp" />
@@ -33,7 +35,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\core\camera.h" />
+    <ClInclude Include="include\core\canvasitems.h" />
     <ClInclude Include="include\core\framebuffers.h" />
+    <ClInclude Include="include\core\interface.h" />
     <ClInclude Include="include\core\main.h" />
     <ClInclude Include="include\core\mesh.h" />
     <ClInclude Include="include\core\physics.h" />

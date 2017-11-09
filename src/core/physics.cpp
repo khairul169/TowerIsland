@@ -74,7 +74,7 @@ static void nearCallback(void *data, dGeomID o1, dGeomID o2)
 	{
 		for (i = 0; i < numc; i++)
 		{
-			dJointID c = dJointCreateContact(mainObject->physicsMgr->world, mainObject->physicsMgr->contactgroup, contact + i);
+			dJointID c = dJointCreateContact(mPhysicsMgr->world, mPhysicsMgr->contactgroup, contact + i);
 			dJointAttach(c, b1, b2);
 		}
 	}

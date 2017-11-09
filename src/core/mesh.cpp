@@ -1,6 +1,6 @@
 #include "main.h"
 
-void Mesh::create(vector<float> buffers, vector<unsigned int> indices)
+void Mesh::Create(vector<float> buffers, vector<unsigned int> indices)
 {
 	// Generate VAO
 	glGenVertexArrays(1, &vao);
@@ -19,14 +19,25 @@ void Mesh::create(vector<float> buffers, vector<unsigned int> indices)
 	numIndices = indices.size();
 }
 
-void Mesh::draw()
+void Mesh::Draw()
 {
 	// Bind VAO
 	glBindVertexArray(vao);
 
+	// Set alpha blending
+	if (material->diffuse->hasAlpha)
+	{
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
+	else
+	{
+		glDisable(GL_BLEND);
+	}
+
 	// Shaders binding
-	mainObject->materialShaders->bind();
-	mainObject->materialShaders->updateCamera(mainObject->getCamera());
+	mShadersMgr->mMaterial->Bind();
+	mShadersMgr->mMaterial->UpdateCamera(mCamera);
 
 	// Set model transform
 	mat4 transform = mat4(1.0f);
@@ -34,21 +45,25 @@ void Mesh::draw()
 	transform = transform * toMat4(quaternion);
 	transform = scale(transform, scaling);
 
-	mainObject->materialShaders->setModelMatrix(transform);
-	mainObject->materialShaders->updateProjection();
+	mShadersMgr->mMaterial->SetModelMatrix(transform);
+	mShadersMgr->mMaterial->UpdateProjection();
 	
-	mainObject->materialShaders->setColor(material->color);
-	mainObject->materialShaders->setTexture(material->diffuse);
+	mShadersMgr->mMaterial->SetColor(material->color);
+	mShadersMgr->mMaterial->SetTexture(material->diffuse);
 
 	// Bind vertex buffer
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-	glEnableVertexAttribArray(2);
-
-	// Vertex buffer
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+
+	// Position
+	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, 0); // 3 + 2 + 3 = 8
+
+	// UVs
+	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*) (sizeof(float) * 3)); // 3
+
+	// Normals
+	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*) (sizeof(float) * 5)); // 3 + 2
 
 	// Indices buffer
@@ -70,7 +85,14 @@ QuadMesh::QuadMesh()
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
 
-	const GLfloat buffer[] = {-1.0f, -1.0f, 0.0f, 1.0f, -1.0f, 0.0f, -1.0f,  1.0f, 0.0f, -1.0f,  1.0f, 0.0f, 1.0f, -1.0f, 0.0f, 1.0f,  1.0f, 0.0f};
+	const GLfloat buffer[] = {
+		0.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		1.0f, 1.0f, 0.0f
+	};
 
 	glGenBuffers(1, &vertexID);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexID);
@@ -78,7 +100,7 @@ QuadMesh::QuadMesh()
 	glBindVertexArray(0);
 }
 
-void QuadMesh::draw()
+void QuadMesh::Draw()
 {
 	// Draw quad
 	glBindVertexArray(vao);

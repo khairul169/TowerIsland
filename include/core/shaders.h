@@ -5,14 +5,17 @@
 #include "camera.h"
 #include "texloader.h"
 
+//////////////////// Shaders ///////////////
+
 class Shaders
 {
 protected:
 	GLuint vertID;
 	GLuint fragID;
-	GLuint programID;
 
 public:
+	GLuint programID;
+
 	bool isLoaded;
 	char *shaderName;
 
@@ -21,15 +24,13 @@ public:
 		isLoaded = false;
 	}
 
-	void load(const char *name);
-	void bind();
+	void Load(const char *name);
+	void Bind();
 
-	virtual void shadersLoaded();
-
-	GLuint getProgramID();
+	virtual void ShadersLoaded();
 
 private:
-	void checkShader(int id);
+	void CheckShader(int id);
 };
 
 class MaterialShaders: public Shaders
@@ -50,25 +51,58 @@ private:
 	GLuint lightPosUniform, lightAmbientUniform, lightColorUniform;
 
 public:
-	void shadersLoaded();
+	void ShadersLoaded();
 
-	void setModelMatrix(mat4 mat);
-	void updateCamera(Camera *cam);
-	void updateProjection();
+	void SetModelMatrix(mat4 mat);
+	void UpdateCamera(Camera *cam);
+	void UpdateProjection();
 
-	void setColor(vec3 col);
-	void setTexture(Texture *tex);
+	void SetColor(vec3 col);
+	void SetColor(vec4 col);
+	void SetTexture(Texture *tex);
 };
 
 class ScreenShaders: public Shaders
 {
 private:
+	GLuint mProjectionID;
 	GLuint renderedTextureUniform, depthTextureUniform;
 	GLuint timeUniform;
 
+	mat4 mProjection;
+
 public:
-	void shadersLoaded();
-	void setUniforms(GLuint renderTex, GLuint depthTex, float time);
+	void ShadersLoaded();
+	void Bind();
+	void SetUniforms(GLuint renderTex, GLuint depthTex, float time);
+};
+
+class CanvasShaders: public Shaders
+{
+private:
+	mat4 mProjection, mModel;
+
+	GLuint texID;
+	GLuint mpMatrixID;
+
+public:
+	void ShadersLoaded();
+	void UpdateMatrix();
+	void SetTransform(vec2 pos, vec2 size, bool flip_y = false);
+	void SetTexture(GLuint tex);
+};
+
+///////////////////////////////////// Shaders manager /////////////////////////
+
+class ShadersManager
+{
+public:
+	// Shaders
+	MaterialShaders* mMaterial;
+	CanvasShaders* mCanvas;
+
+public:
+	void Init();
 };
 
 #endif // !SHADERS_H

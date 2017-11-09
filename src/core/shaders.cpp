@@ -3,8 +3,11 @@
 #include <stdlib.h>
 #include <vector>
 
-void Shaders::load(const char *name)
+void Shaders::Load(const char *name)
 {
+	// Debug info
+	printf("Loading %s shaders...\n", name);
+
 	// Set shader name
 	shaderName = new char[64];
 	sprintf(shaderName, "%s", name);
@@ -43,14 +46,14 @@ void Shaders::load(const char *name)
 	glCompileShader(vertID);
 
 	// Check shader
-	checkShader(vertID);
+	CheckShader(vertID);
 
 	// Compile shader
 	glShaderSource(fragID, 1, &fragmentSource, NULL);
 	glCompileShader(fragID);
 
 	// Check shader
-	checkShader(fragID);
+	CheckShader(fragID);
 
 	// Link the program
 	programID = glCreateProgram();
@@ -59,7 +62,7 @@ void Shaders::load(const char *name)
 	glLinkProgram(programID);
 
 	// Check the program
-	checkShader(programID);
+	CheckShader(programID);
 
 	glDetachShader(programID, vertID);
 	glDetachShader(programID, fragID);
@@ -67,10 +70,10 @@ void Shaders::load(const char *name)
 	glDeleteShader(vertID);
 	glDeleteShader(fragID);
 
-	shadersLoaded();
+	ShadersLoaded();
 }
 
-void Shaders::checkShader(int id)
+void Shaders::CheckShader(int id)
 {
 	GLint result = GL_FALSE;
 	int infoLogLength;
@@ -85,27 +88,22 @@ void Shaders::checkShader(int id)
 	}
 }
 
-void Shaders::shadersLoaded()
+void Shaders::ShadersLoaded()
 {
 	// Shaders loaded.
-	printf("Shaders %s loaded.\n", shaderName);
+	printf("Shaders %s loaded.\n\n", shaderName);
 }
 
-void Shaders::bind()
+void Shaders::Bind()
 {
 	glUseProgram(programID);
 }
 
-GLuint Shaders::getProgramID()
-{
-	return programID;
-}
-
 // Material Shaders
 
-void MaterialShaders::shadersLoaded()
+void MaterialShaders::ShadersLoaded()
 {
-	Shaders::shadersLoaded();
+	Shaders::ShadersLoaded();
 
 	// Perspective
 	projection = mat4(0.0f);
@@ -113,7 +111,7 @@ void MaterialShaders::shadersLoaded()
 	model = mat4(1.0f);
 
 	// Update projection
-	updateProjection();
+	UpdateProjection();
 
 	// Vert Uniforms
 	modelMatrix = glGetUniformLocation(programID, "model");
@@ -130,18 +128,18 @@ void MaterialShaders::shadersLoaded()
 	lightColorUniform = glGetUniformLocation(programID, "lightColor");
 }
 
-void MaterialShaders::setModelMatrix(mat4 mat)
+void MaterialShaders::SetModelMatrix(mat4 mat)
 {
 	model = mat;
 }
 
-void MaterialShaders::updateCamera(Camera *cam)
+void MaterialShaders::UpdateCamera(Camera *cam)
 {
-	projection = cam->getProjection();
-	view = cam->getView();
+	projection = cam->projection;
+	view = cam->view;
 }
 
-void MaterialShaders::updateProjection()
+void MaterialShaders::UpdateProjection()
 {
 	modelViewProjection = projection * view * model;
 	glUniformMatrix4fv(modelMatrix, 1, GL_FALSE, &model[0][0]);
@@ -160,30 +158,46 @@ void MaterialShaders::updateProjection()
 	glUniform3f(lightColorUniform, lightColor.x, lightColor.y, lightColor.z);
 }
 
-void MaterialShaders::setColor(vec3 col)
+void MaterialShaders::SetColor(vec3 col)
 {
-	glUniform3f(colorUniform, col.x, col.y, col.z);
+	glUniform4f(colorUniform, col.x, col.y, col.z, 1.0f);
 }
 
-void MaterialShaders::setTexture(Texture *tex)
+void MaterialShaders::SetColor(vec4 col)
+{
+	glUniform4f(colorUniform, col.x, col.y, col.z, col.w);
+}
+
+void MaterialShaders::SetTexture(Texture *tex)
 {
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, tex->getTextureID());
+	glBindTexture(GL_TEXTURE_2D, tex->texID);
 	glUniform1i(diffuseUniform, 0);
 }
 
-void ScreenShaders::shadersLoaded()
+void ScreenShaders::ShadersLoaded()
 {
-	Shaders::shadersLoaded();
+	Shaders::ShadersLoaded();
 
 	// Uniforms
+	mProjectionID = glGetUniformLocation(programID, "mProjection");
+
 	renderedTextureUniform = glGetUniformLocation(programID, "renderedTexture");
 	depthTextureUniform = glGetUniformLocation(programID, "depthTexture");
 
 	timeUniform = glGetUniformLocation(programID, "time");
 }
 
-void ScreenShaders::setUniforms(GLuint renderTex, GLuint depthTex, float time)
+void ScreenShaders::Bind()
+{
+	Shaders::Bind();
+
+	// Projection Matrix
+	mProjection = ortho(0.0f, 1.0f, 0.0f, 1.0f);
+	glUniformMatrix4fv(mProjectionID, 1, GL_FALSE, &mProjection[0][0]);
+}
+
+void ScreenShaders::SetUniforms(GLuint renderTex, GLuint depthTex, float time)
 {
 	// Render Texture
 	glActiveTexture(GL_TEXTURE0);
@@ -197,4 +211,59 @@ void ScreenShaders::setUniforms(GLuint renderTex, GLuint depthTex, float time)
 
 	// Time
 	glUniform1f(timeUniform, time);
+}
+
+// Canvas Shaders
+
+void CanvasShaders::ShadersLoaded()
+{
+	Shaders::ShadersLoaded();
+
+	// Uniforms
+	mpMatrixID = glGetUniformLocation(programID, "modelProjection");
+	texID = glGetUniformLocation(programID, "tex");
+}
+
+void CanvasShaders::UpdateMatrix()
+{
+	// Set ortho projection
+	mProjection = ortho(0.0f, (float)mWindow->width, (float)mWindow->height, 0.0f);
+
+	// Model Projection Matrix
+	mat4 modelProjection = mProjection * mModel;
+	glUniformMatrix4fv(mpMatrixID, 1, GL_FALSE, &modelProjection[0][0]);
+}
+
+void CanvasShaders::SetTransform(vec2 pos, vec2 size, bool flip_y)
+{
+	// Set model matrix
+	if (flip_y)
+	{
+		mModel = translate(mat4(1.0f), vec3(pos.x, pos.y + size.y, 0.0f));
+		mModel = scale(mModel, vec3(size.x, -size.y, 0.0f));
+	}
+	else
+	{
+		mModel = translate(mat4(1.0f), vec3(pos, 0.0f));
+		mModel = scale(mModel, vec3(size, 0.0f));
+	}
+
+	UpdateMatrix();
+}
+
+void CanvasShaders::SetTexture(GLuint tex)
+{
+	// Set texture
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, tex);
+	glUniform1i(texID, 0);
+}
+
+void ShadersManager::Init()
+{
+	mMaterial = new MaterialShaders();
+	mMaterial->Load("material");
+
+	mCanvas = new CanvasShaders();
+	mCanvas->Load("canvas");
 }

@@ -5,15 +5,13 @@
 
 class Texture
 {
-private:
+public:
 	int width, height, bpp;
-
+	bool hasAlpha;
 	GLuint texID;
 
 public:
-	bool loadTexture(const char* path);
-	
-	GLuint getTextureID() { return texID; }
+	bool LoadTexture(const char* path, bool mipmaps = true);
 };
 
 #endif // !TEXLOADER_H

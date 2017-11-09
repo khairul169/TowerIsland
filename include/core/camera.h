@@ -5,10 +5,8 @@
 
 class Camera
 {
-private:
-	mat4 projection, view;
-
 public:
+	mat4 projection, view;
 	float fov, ratio, near, far;
 
 public:
@@ -20,13 +18,10 @@ public:
 		far = 100.0f;
 	}
 
-	void setPerspective(float fov, float ratio, float near, float far);
-	void setOrtho(float left, float right, float bottom, float top, float near, float far);
-	void setLookAt(vec3 origin, vec3 look_pos, vec3 up);
-	void setRatio(float ratio);
-
-	mat4 getProjection() { return projection; }
-	mat4 getView() { return view; }
+	void SetPerspective(float fov, float ratio, float near, float far);
+	void SetOrtho(float left, float right, float bottom, float top, float near, float far);
+	void SetLookAt(vec3 origin, vec3 look_pos, vec3 up);
+	void SetRatio(float ratio);
 };
 
 #endif // !CAMERA_H

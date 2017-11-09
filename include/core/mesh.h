@@ -44,8 +44,8 @@ public:
 		scaling = vec3(1.0f);
 	}
 
-	void create(vector<float> buffers, vector<unsigned int> indices);
-	void draw();
+	void Create(vector<float> buffers, vector<unsigned int> indices);
+	void Draw();
 };
 
 class StaticMesh
@@ -72,22 +72,22 @@ public:
 		scaling = vec3(1.0f);
 	}
 
-	void loadMesh(const char* path);
-	void draw();
+	void LoadMesh(const char* path);
+	void Draw();
 	
 private:
-	void parse(const aiScene* scene);
+	void Parse(const aiScene* scene);
 };
 
 class QuadMesh
 {
-private:
+protected:
 	GLuint vao, vertexID;
 
 public:
 	QuadMesh();
 
-	void draw();
+	void Draw();
 };
 
 #endif // !MESHLOADER_H

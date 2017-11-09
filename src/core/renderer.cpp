@@ -3,52 +3,65 @@
 void VisualRender::init()
 {
 	// Setup screen space
-	screenFramebuffers = new Framebuffers();
-	screenFramebuffers->create(mainObject->window->width, mainObject->window->height);
+	mViewportFBO = new Framebuffers();
+	mViewportFBO->create(mWindow->width, mWindow->height);
 
-	// Setup framebuffer screen quad
-	screenQuad = new QuadMesh();
-
-	// Load shaders
-	screenShaders = new ScreenShaders();
-	screenShaders->load("screen");
+	// Setup canvas
+	mViewportCanvas = new FramebufferCanvas(mViewportFBO);
 }
 
 void VisualRender::resized()
 {
 	// Resize framebuffer size
-	screenFramebuffers->resize(mainObject->window->width, mainObject->window->height);
+	mViewportFBO->resize(mWindow->width, mWindow->height);
 }
 
 void VisualRender::loop()
 {
+	// Clear the screen
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// Set default clear color
+	glClearColor(152.0f / 255.0f, 186.0f / 255.0f, 242.0f / 255.0f, 1.0f);
+
+	// Enable depth test & culling
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+	glEnable(GL_CULL_FACE);
+
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// Render to our framebuffer
-	screenFramebuffers->begin();
+	mViewportFBO->begin();
 
-	// Render whole scene
-	mainObject->render();
+	// Render spatial scene
+	mMain->Render();
 
 	// End rendering
-	screenFramebuffers->end();
+	mViewportFBO->end();
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	// Render the framebuffer to screen
+	// Reset viewport
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	// Fullscreen drawing
-	glViewport(0, 0, mainObject->window->width, mainObject->window->height);
+	glViewport(0, 0, mWindow->width, mWindow->height);
 
 	// Clear the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	screenShaders->bind();
-	screenShaders->setUniforms(screenFramebuffers->renderTexID, screenFramebuffers->depthTexID, mainObject->flTime);
+	// Disable depth test & face culling
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
 
-	// Draw screen quad
-	screenQuad->draw();
+	// Enable alpha blending
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	// Render framebuffer texture
+	mViewportCanvas->Draw(vec2(0, 0), vec2(mWindow->width, mWindow->height));
+
+	// Draw the user interface
+	mInterface->Redraw();
 }
 
 void VisualRender::free()

@@ -1,7 +1,7 @@
 #include "main.h"
 #include "window.h"
 
-void window_size_callback(GLFWwindow* window, int width, int height) { mainObject->window->onResized(width, height); }
+void window_size_callback(GLFWwindow* window, int width, int height) { mWindow->onResized(width, height); }
 
 void Window::init()
 {
@@ -58,7 +58,7 @@ void Window::onResized(int width, int height)
 	this->height = fbHeight;
 
 	// Reset ratio
-	mainObject->camera->setRatio(getAspectRatio());
+	mCamera->SetRatio(getAspectRatio());
 
 	// Call renderer resized method
 	renderer->resized();
