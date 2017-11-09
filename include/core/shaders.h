@@ -37,7 +37,7 @@ class MaterialShaders: public Shaders
 {
 private:
 	mat4 projection, view, model;
-	mat4 modelViewProjection;
+	mat4 modelViewProjection, mDepthBiasMatrix;
 
 	// Vertex uniform
 	GLuint modelMatrix, viewMatrix;
@@ -49,6 +49,7 @@ private:
 
 	// Lighting
 	GLuint lightPosUniform, lightAmbientUniform, lightColorUniform;
+	GLuint shadowDepthMatrix, shadowDepthTex;
 
 public:
 	void ShadersLoaded();
@@ -59,7 +60,7 @@ public:
 
 	void SetColor(vec3 col);
 	void SetColor(vec4 col);
-	void SetTexture(Texture *tex);
+	void SetTexture(Texture *tex, GLuint shadowDepthID);
 };
 
 class PostFxShaders: public Shaders
@@ -74,7 +75,19 @@ public:
 	void SetUniforms(GLuint renderTex, GLuint depthTex);
 };
 
-class CanvasShaders: public Shaders
+class DepthMapShaders: public Shaders
+{
+private:
+	GLuint mProjectionID;
+	GLuint depthTextureUniform;
+
+public:
+	void ShadersLoaded();
+	void Bind();
+	void SetDepthTex(GLuint depthTex);
+};
+
+class CanvasShaders : public Shaders
 {
 private:
 	mat4 mProjection, mModel;

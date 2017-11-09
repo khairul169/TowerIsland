@@ -67,6 +67,9 @@ void PhysicsObject::CreateSphereBody(float mass, float radius)
 	// Create rigidbody
 	mBody = new btRigidBody(mConstructionInfo);
 	mPhysicsMgr->mWorld->addRigidBody(mBody);
+
+	mBody->setActivationState(DISABLE_DEACTIVATION);
+	mBody->setDamping(0.5f, 0.5f);
 }
 
 void PhysicsObject::CreateCubeBody(float mass, vec3 extents)
@@ -87,6 +90,7 @@ void PhysicsObject::CreateCubeBody(float mass, vec3 extents)
 
 void PhysicsObject::CreateTriMesh(vector<float> vertices, vector<unsigned int> indices)
 {
+	// Generate trimesh data
 	btTriangleMesh *mTriMesh = new btTriangleMesh();
 
 	for (size_t i = 0; i < indices.size()/3; i++)

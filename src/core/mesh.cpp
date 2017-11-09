@@ -37,7 +37,12 @@ void Mesh::Draw()
 
 	// Shaders binding
 	mShadersMgr->mMaterial->Bind();
-	mShadersMgr->mMaterial->UpdateCamera(mCamera);
+	
+	// Switch camera
+	if (mWindow->renderer->mRenderingShadowFBO)
+		mShadersMgr->mMaterial->UpdateCamera(mWindow->renderer->mShadowmapCamera);
+	else
+		mShadersMgr->mMaterial->UpdateCamera(mCamera);
 
 	// Set model transform
 	mat4 transform = mat4(1.0f);
@@ -48,8 +53,11 @@ void Mesh::Draw()
 	mShadersMgr->mMaterial->SetModelMatrix(transform);
 	mShadersMgr->mMaterial->UpdateProjection();
 	
-	mShadersMgr->mMaterial->SetColor(material->color);
-	mShadersMgr->mMaterial->SetTexture(material->diffuse);
+	if (!mWindow->renderer->mRenderingShadowFBO)
+	{
+		mShadersMgr->mMaterial->SetColor(material->color);
+		mShadersMgr->mMaterial->SetTexture(material->diffuse, mWindow->renderer->mShadowmapFBO->depthTexID);
+	}
 
 	// Bind vertex buffer
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);

@@ -44,7 +44,7 @@ void Window::init()
 
 	// Init visual render
 	renderer = new VisualRender();
-	renderer->init();
+	renderer->Init();
 }
 
 void Window::onResized(int width, int height)
@@ -61,13 +61,13 @@ void Window::onResized(int width, int height)
 	mCamera->SetRatio(getAspectRatio());
 
 	// Call renderer resized method
-	renderer->resized();
+	renderer->Resized();
 }
 
 void Window::loop()
 {
 	// Loop the renderer
-	renderer->loop();
+	renderer->Loop();
 }
 
 void Window::swapBuffers()
@@ -80,7 +80,7 @@ void Window::swapBuffers()
 
 void Window::free()
 {
-	renderer->free();
+	renderer->Free();
 }
 
 bool Window::canDestroyed()

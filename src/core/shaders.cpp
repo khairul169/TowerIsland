@@ -126,6 +126,16 @@ void MaterialShaders::ShadersLoaded()
 	lightPosUniform = glGetUniformLocation(programID, "lightPos");
 	lightAmbientUniform = glGetUniformLocation(programID, "lightAmbient");
 	lightColorUniform = glGetUniformLocation(programID, "lightColor");
+
+	shadowDepthMatrix = glGetUniformLocation(programID, "shadowMatrix");
+	shadowDepthTex = glGetUniformLocation(programID, "shadowTex");
+
+	mDepthBiasMatrix = mat4(
+		0.5, 0.0, 0.0, 0.0,
+		0.0, 0.5, 0.0, 0.0,
+		0.0, 0.0, 0.5, 0.0,
+		0.5, 0.5, 0.5, 1.0
+	);
 }
 
 void MaterialShaders::SetModelMatrix(mat4 mat)
@@ -151,11 +161,14 @@ void MaterialShaders::UpdateProjection()
 
 	vec3 lightPos = vec3(3, 2, 3);
 	vec4 lightAmbient = vec4(1.0f, 1.0f, 1.0f, 0.8f);
-	vec3 lightColor = vec3(1.0f, 1.0f, 1.0f);
+	vec4 lightColor = vec4(1.0f, 1.0f, 1.0f, 1.2f);
 
 	glUniform3f(lightPosUniform, lightPos.x, lightPos.y, lightPos.z);
 	glUniform4f(lightAmbientUniform, lightAmbient.x, lightAmbient.y, lightAmbient.z, lightAmbient.w);
-	glUniform3f(lightColorUniform, lightColor.x, lightColor.y, lightColor.z);
+	glUniform4f(lightColorUniform, lightColor.x, lightColor.y, lightColor.z, lightColor.w);
+
+	mat4 shadowMatrix = mDepthBiasMatrix * mWindow->renderer->mShadowmapCamera->projection * mWindow->renderer->mShadowmapCamera->view * model;
+	glUniformMatrix4fv(shadowDepthMatrix, 1, GL_FALSE, &shadowMatrix[0][0]);
 }
 
 void MaterialShaders::SetColor(vec3 col)
@@ -168,11 +181,15 @@ void MaterialShaders::SetColor(vec4 col)
 	glUniform4f(colorUniform, col.x, col.y, col.z, col.w);
 }
 
-void MaterialShaders::SetTexture(Texture *tex)
+void MaterialShaders::SetTexture(Texture *tex, GLuint shadowDepthID)
 {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tex->texID);
 	glUniform1i(diffuseUniform, 0);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, shadowDepthID);
+	glUniform1i(shadowDepthTex, 1);
 }
 
 // Post effect shaders
@@ -208,6 +225,34 @@ void PostFxShaders::SetUniforms(GLuint renderTex, GLuint depthTex)
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, depthTex);
 	glUniform1i(depthTextureUniform, 1);
+}
+
+// DepthMapShaders
+
+void DepthMapShaders::ShadersLoaded()
+{
+	Shaders::ShadersLoaded();
+
+	// Uniforms
+	mProjectionID = glGetUniformLocation(programID, "mProjection");
+	depthTextureUniform = glGetUniformLocation(programID, "depthTexture");
+}
+
+void DepthMapShaders::Bind()
+{
+	Shaders::Bind();
+
+	// Projection Matrix
+	mat4 mProjection = ortho(0.0f, 1.0f, 0.0f, 1.0f);
+	glUniformMatrix4fv(mProjectionID, 1, GL_FALSE, &mProjection[0][0]);
+}
+
+void DepthMapShaders::SetDepthTex(GLuint depthTex)
+{
+	// Depth Texture
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, depthTex);
+	glUniform1i(depthTextureUniform, 0);
 }
 
 // Canvas Shaders

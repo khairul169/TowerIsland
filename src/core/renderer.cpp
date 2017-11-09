@@ -1,6 +1,6 @@
 #include "main.h"
 
-void VisualRender::init()
+void VisualRender::Init()
 {
 	// Setup screen space
 	mViewportFBO = new Framebuffers();
@@ -11,8 +11,6 @@ void VisualRender::init()
 	mChromaticPostFX->Create(mWindow->width, mWindow->height);
 
 	// Setup canvas
-	bool iEnablePostProcessing = false;
-	
 	if (iEnablePostProcessing)
 		mViewportCanvas = new FramebufferCanvas(mChromaticPostFX);
 	else
@@ -24,16 +22,29 @@ void VisualRender::init()
 	// Load shaders
 	mChromaticShaders = new PostFxShaders();
 	mChromaticShaders->Load("fx_chromatic");
+
+	// Setup Shadowmapping
+	const int mShadowmapSize = 512;
+
+	mShadowmapFBO = new Framebuffers(true, true);
+	mShadowmapFBO->Create(mShadowmapSize, mShadowmapSize);
+
+	mShadowmapCamera = new Camera();
+	mShadowmapCamera->SetOrtho(-10, 10, -10, 10, -10, 20);
+	mShadowmapCamera->SetLookAt(vec3(3.0f, 2.0f, 3.0f), vec3(0.0f), vec3(0, 1, 0));
+	
+	// Set variables
+	mRenderingShadowFBO = false;
 }
 
-void VisualRender::resized()
+void VisualRender::Resized()
 {
 	// Resize framebuffer size
 	mViewportFBO->Resize(mWindow->width, mWindow->height);
 	mChromaticPostFX->Resize(mWindow->width, mWindow->height);
 }
 
-void VisualRender::loop()
+void VisualRender::Loop()
 {
 	// Clear the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -48,6 +59,17 @@ void VisualRender::loop()
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	mShadowmapFBO->Begin();
+	mRenderingShadowFBO = true;
+
+	// Render spatial scene
+	mMain->Render();
+
+	mRenderingShadowFBO = false;
+	mShadowmapFBO->End();
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	// Render to our framebuffer
 	mViewportFBO->Begin();
 
@@ -59,16 +81,19 @@ void VisualRender::loop()
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	// Post effect
-	mChromaticPostFX->Begin();
+	if (iEnablePostProcessing)
+	{
+		// Post effect
+		mChromaticPostFX->Begin();
 
-	// Render post fx
-	mChromaticShaders->Bind();
-	mChromaticShaders->SetUniforms(mViewportFBO->renderTexID, mViewportFBO->depthTexID);
-	mChromaticMesh->Draw();
+		// Render post fx
+		mChromaticShaders->Bind();
+		mChromaticShaders->SetUniforms(mViewportFBO->renderTexID, mViewportFBO->depthTexID);
+		mChromaticMesh->Draw();
 
-	// End rendering
-	mChromaticPostFX->End();
+		// End rendering
+		mChromaticPostFX->End();
+	}
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -96,7 +121,7 @@ void VisualRender::loop()
 	mInterface->Redraw();
 }
 
-void VisualRender::free()
+void VisualRender::Free()
 {
 
 }
