@@ -53,6 +53,8 @@ private:
 	PhysicsObject *p_crate;
 	PhysicsObject *p_sphere;
 
+	WaterMesh *m_water;
+
 public:
 	void Init();
 	void Ready();
@@ -63,6 +65,7 @@ public:
 
 extern Main *mMain;
 extern Window *mWindow;
+extern VisualRender *mVisualRender;
 extern Camera *mCamera;
 extern ShadersManager *mShadersMgr;
 extern PhysicsManager *mPhysicsMgr;

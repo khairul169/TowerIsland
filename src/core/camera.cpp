@@ -24,5 +24,8 @@ void Camera::SetRatio(float ratio)
 
 void Camera::SetLookAt(vec3 origin, vec3 look_pos, vec3 up)
 {
+	mOrigin = origin;
+	mLookAt = look_pos;
+
 	view = lookAt(origin, look_pos, up);
 }

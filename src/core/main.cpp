@@ -3,6 +3,7 @@
 // Objects handler
 Main *mMain;
 Window *mWindow;
+VisualRender *mVisualRender;
 Camera *mCamera;
 ShadersManager *mShadersMgr;
 PhysicsManager *mPhysicsMgr;
@@ -25,10 +26,14 @@ void Main::Init()
 	mWindow = new Window();
 	mWindow->init();
 
+	// Renderer
+	mVisualRender = new VisualRender();
+	mVisualRender->Init();
+
 	// Setup camera
 	mCamera = new Camera();
 	mCamera->SetPerspective(radians(60.0f), mWindow->getAspectRatio(), 0.1f, 100.0f);
-	mCamera->SetLookAt(vec3(4, 4, 3), vec3(0, 1, 0), vec3(0, 1, 0));
+	mCamera->SetLookAt(vec3(4, 8, 3), vec3(0, 2, 0), vec3(0, 1, 0));
 
 	// Shaders manager
 	mShadersMgr = new ShadersManager();
@@ -90,6 +95,9 @@ void Main::Ready()
 	p_sphere = mPhysicsMgr->CreateObject();
 	p_sphere->CreateSphereBody(1.0f, 0.5f);
 	p_sphere->setPosition(m_sphere->position);
+
+	// Water
+	m_water = new WaterMesh();
 }
 
 static float flRotation = 0.0f;
@@ -109,8 +117,8 @@ void Main::Loop()
 	flNextPrintFPS -= flDelta;
 	if (flNextPrintFPS <= 0.0f)
 	{
-		//printf("FPS: %i\n", (int)(1.0f / flDelta));
-		flNextPrintFPS = 1.0f;
+		printf("FPS: %i\n", (int)(1.0f / flDelta));
+		flNextPrintFPS = 3.0f;
 	}
 
 	// Reset time
@@ -181,6 +189,8 @@ void Main::Render()
 	m_floor->Draw();
 	m_crate->Draw();
 	m_sphere->Draw();
+
+	m_water->Draw();
 }
 
 void Main::RenderGUI()

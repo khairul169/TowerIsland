@@ -11,10 +11,12 @@ layout(location = 0) out vec4 COLOR;
 uniform vec4 color;
 uniform sampler2D diffuse;
 
+// Lighting
 uniform vec3 lightPos;
 uniform vec4 lightAmbient;
 uniform vec4 lightColor;
 
+// Shadow mapping
 uniform sampler2DShadow shadowTex;
 
 void main(){
@@ -26,7 +28,7 @@ void main(){
 	
 	float mShadowBias = 0.005;
 	float mShadowValue = texture(shadowTex, vec3(mShadowCoord.xy, (mShadowCoord.z - mShadowBias)/mShadowCoord.w));
-	col.rgb *= lightAmbient.a+(mShadowValue*(1.0-lightAmbient.a));
+	col.rgb *= lightAmbient.a + (mShadowValue * (1.0-lightAmbient.a));
 	
 	COLOR = col;
 }

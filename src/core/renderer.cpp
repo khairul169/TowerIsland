@@ -24,14 +24,22 @@ void VisualRender::Init()
 	mChromaticShaders->Load("fx_chromatic");
 
 	// Setup Shadowmapping
-	const int mShadowmapSize = 512;
+	const int mShadowmapSize = 512;// 512;
 
-	mShadowmapFBO = new Framebuffers(true, true);
+	mShadowmapFBO = new Framebuffers(false, true);
 	mShadowmapFBO->Create(mShadowmapSize, mShadowmapSize);
 
 	mShadowmapCamera = new Camera();
 	mShadowmapCamera->SetOrtho(-10, 10, -10, 10, -10, 20);
 	mShadowmapCamera->SetLookAt(vec3(3.0f, 2.0f, 3.0f), vec3(0.0f), vec3(0, 1, 0));
+
+	// Water Mesh
+	const int mWaterFBODivider = 1;
+	mWaterReflectionFBO = new Framebuffers(true, false);
+	mWaterReflectionFBO->Create(mWindow->width / mWaterFBODivider, mWindow->height / mWaterFBODivider);
+	mWaterRefractionFBO = new Framebuffers(true, true);
+	mWaterRefractionFBO->Create(mWindow->width / mWaterFBODivider, mWindow->height / mWaterFBODivider);
+	mWaterReflectionCam = new Camera();
 	
 	// Set variables
 	mRenderingShadowFBO = false;
@@ -52,15 +60,21 @@ void VisualRender::Loop()
 	// Set default clear color
 	glClearColor(152.0f / 255.0f, 186.0f / 255.0f, 242.0f / 255.0f, 1.0f);
 
-	// Enable depth test & culling
+	// Enable depth test & face culling
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	glEnable(GL_CULL_FACE);
+
+	// Store default camera
+	mDefaultCamera = mCamera;
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	mShadowmapFBO->Begin();
 	mRenderingShadowFBO = true;
+
+	// Set camera
+	mCamera = mShadowmapCamera;
 
 	// Render spatial scene
 	mMain->Render();
@@ -69,6 +83,44 @@ void VisualRender::Loop()
 	mShadowmapFBO->End();
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	// Water rendering
+	
+	// Enable clipping
+	glEnable(GL_CLIP_DISTANCE0);
+
+	// Reflection
+	mWaterReflectionFBO->Begin();
+	mWaterReflectionCam->projection = mDefaultCamera->projection;
+	mWaterReflectionCam->SetLookAt(mDefaultCamera->mOrigin * vec3(1, -1, 1), mDefaultCamera->mLookAt, vec3(0, 1, 0));
+	
+	mCamera = mWaterReflectionCam;
+	mShadersMgr->mMaterial->mClippingPlane = vec4(0, 1, 0, 15);
+
+	// Render scenes
+	mMain->Render();
+	
+	mWaterReflectionFBO->End();
+
+	///////////////////////////////////////////////////////////////////////////////////////
+
+	// Reflection
+	mWaterRefractionFBO->Begin();
+	mCamera = mDefaultCamera;
+	mShadersMgr->mMaterial->mClippingPlane = vec4(0, -1, 0, 15);
+
+	// Render scenes
+	mMain->Render();
+	mWaterRefractionFBO->End();
+
+	// Disable clipping
+	glDisable(GL_CLIP_DISTANCE0);
+	mShadersMgr->mMaterial->mClippingPlane = vec4(0);
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	// Restore the camera
+	mCamera = mDefaultCamera;
 
 	// Render to our framebuffer
 	mViewportFBO->Begin();

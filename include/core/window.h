@@ -18,9 +18,6 @@ private:
 	GLFWwindow* window;
 
 public:
-	VisualRender* renderer;
-
-public:
 	int width, height;
 
 	float getAspectRatio() { return (float)width / (float)height; }

@@ -114,10 +114,11 @@ void MaterialShaders::ShadersLoaded()
 	UpdateProjection();
 
 	// Vert Uniforms
-	modelMatrix = glGetUniformLocation(programID, "model");
+	modelMatrix = glGetUniformLocation(programID, "uModelMatrix");
 	viewMatrix = glGetUniformLocation(programID, "view");
 	matrixUniform = glGetUniformLocation(programID, "modelViewProjection");
 	normalMatrix = glGetUniformLocation(programID, "normal");
+	uClippingPlane = glGetUniformLocation(programID, "mClippingPlane");
 
 	// Frag Uniforms
 	colorUniform = glGetUniformLocation(programID, "color");
@@ -136,6 +137,13 @@ void MaterialShaders::ShadersLoaded()
 		0.0, 0.0, 0.5, 0.0,
 		0.5, 0.5, 0.5, 1.0
 	);
+}
+
+void MaterialShaders::Bind()
+{
+	Shaders::Bind();
+
+	glUniform4f(uClippingPlane, mClippingPlane.x, mClippingPlane.y, mClippingPlane.z, mClippingPlane.z);
 }
 
 void MaterialShaders::SetModelMatrix(mat4 mat)
@@ -160,14 +168,14 @@ void MaterialShaders::UpdateProjection()
 	glUniformMatrix4fv(normalMatrix, 1, GL_FALSE, &normal[0][0]);
 
 	vec3 lightPos = vec3(3, 2, 3);
-	vec4 lightAmbient = vec4(1.0f, 1.0f, 1.0f, 0.8f);
-	vec4 lightColor = vec4(1.0f, 1.0f, 1.0f, 1.2f);
+	vec4 lightAmbient = vec4(1.0f, 1.0f, 1.0f, 0.75f);
+	vec4 lightColor = vec4(1.0f, 1.0f, 1.0f, 1.25f);
 
 	glUniform3f(lightPosUniform, lightPos.x, lightPos.y, lightPos.z);
 	glUniform4f(lightAmbientUniform, lightAmbient.x, lightAmbient.y, lightAmbient.z, lightAmbient.w);
 	glUniform4f(lightColorUniform, lightColor.x, lightColor.y, lightColor.z, lightColor.w);
 
-	mat4 shadowMatrix = mDepthBiasMatrix * mWindow->renderer->mShadowmapCamera->projection * mWindow->renderer->mShadowmapCamera->view * model;
+	mat4 shadowMatrix = mDepthBiasMatrix * mVisualRender->mShadowmapCamera->projection * mVisualRender->mShadowmapCamera->view * model;
 	glUniformMatrix4fv(shadowDepthMatrix, 1, GL_FALSE, &shadowMatrix[0][0]);
 }
 
@@ -190,6 +198,79 @@ void MaterialShaders::SetTexture(Texture *tex, GLuint shadowDepthID)
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, shadowDepthID);
 	glUniform1i(shadowDepthTex, 1);
+}
+
+// Water Shaders
+void WaterShaders::ShadersLoaded()
+{
+	Shaders::ShadersLoaded();
+
+	// Vert Uniforms
+	uMVP = glGetUniformLocation(programID, "mModelViewProjection");
+	uUVSize = glGetUniformLocation(programID, "mUVSize");
+
+	// Frag Uniforms
+	uTime = glGetUniformLocation(programID, "mTime");
+	uColor = glGetUniformLocation(programID, "mColor");
+	uReflectionTex = glGetUniformLocation(programID, "mReflectionTex");
+	uRefractionTex = glGetUniformLocation(programID, "mRefractionTex");
+	uDuDvMap = glGetUniformLocation(programID, "mDuDvMap");
+
+	// Shadowmapping
+	shadowDepthMatrix = glGetUniformLocation(programID, "shadowMatrix");
+	shadowDepthTex = glGetUniformLocation(programID, "shadowTex");
+
+	// Load textures
+	mDuDvTexture = new Texture();
+	mDuDvTexture->LoadTexture("assets/waterdudv.jpg");
+}
+
+void WaterShaders::Bind(vec3 pos, vec3 size, GLuint shadowDepthID)
+{
+	Shaders::Bind();
+
+	// Set matrix
+	mModel = translate(mat4(1.0f), pos);
+	mModel = scale(mModel, size);
+
+	mModelViewProjection = mCamera->projection * mCamera->view * mModel;
+	glUniformMatrix4fv(uMVP, 1, GL_FALSE, &mModelViewProjection[0][0]);
+
+	// Shadow depth matrix
+	mat4 shadowMatrix = mShadersMgr->mMaterial->mDepthBiasMatrix * mVisualRender->mShadowmapCamera->projection * mVisualRender->mShadowmapCamera->view * mModel;
+	glUniformMatrix4fv(shadowDepthMatrix, 1, GL_FALSE, &shadowMatrix[0][0]);
+
+	// Time
+	glUniform1f(uTime, mMain->flTime);
+
+	// UV Size
+	glUniform2f(uUVSize, size.x, size.z);
+
+	// DuDv Map
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, mDuDvTexture->texID);
+	glUniform1i(uDuDvMap, 2);
+
+	// Shadowmap
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, shadowDepthID);
+	glUniform1i(shadowDepthTex, 3);
+}
+
+void WaterShaders::SetColor(vec4 col)
+{
+	glUniform4f(uColor, col.x, col.y, col.z, col.w);
+}
+
+void WaterShaders::SetTextures(GLuint reflectionTexID, GLuint refractionTexID)
+{
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, reflectionTexID);
+	glUniform1i(uReflectionTex, 0);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, refractionTexID);
+	glUniform1i(uRefractionTex, 1);
 }
 
 // Post effect shaders
@@ -301,6 +382,7 @@ void CanvasShaders::SetTexture(GLuint tex)
 	glUniform1i(texID, 0);
 }
 
+// Shaders manager
 void ShadersManager::Init()
 {
 	mMaterial = new MaterialShaders();
@@ -308,4 +390,7 @@ void ShadersManager::Init()
 
 	mCanvas = new CanvasShaders();
 	mCanvas->Load("canvas");
+
+	mWater = new WaterShaders();
+	mWater->Load("water");
 }

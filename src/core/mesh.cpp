@@ -25,7 +25,7 @@ void Mesh::Draw()
 	glBindVertexArray(vao);
 
 	// Set alpha blending
-	if (material->diffuse->hasAlpha)
+	if (material->diffuse->hasAlpha && !mVisualRender->mRenderingShadowFBO)
 	{
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -39,10 +39,7 @@ void Mesh::Draw()
 	mShadersMgr->mMaterial->Bind();
 	
 	// Switch camera
-	if (mWindow->renderer->mRenderingShadowFBO)
-		mShadersMgr->mMaterial->UpdateCamera(mWindow->renderer->mShadowmapCamera);
-	else
-		mShadersMgr->mMaterial->UpdateCamera(mCamera);
+	mShadersMgr->mMaterial->UpdateCamera(mCamera);
 
 	// Set model transform
 	mat4 transform = mat4(1.0f);
@@ -50,13 +47,14 @@ void Mesh::Draw()
 	transform = transform * toMat4(quaternion);
 	transform = scale(transform, scaling);
 
+	// Update uniforms
 	mShadersMgr->mMaterial->SetModelMatrix(transform);
 	mShadersMgr->mMaterial->UpdateProjection();
 	
-	if (!mWindow->renderer->mRenderingShadowFBO)
+	if (!mVisualRender->mRenderingShadowFBO)
 	{
 		mShadersMgr->mMaterial->SetColor(material->color);
-		mShadersMgr->mMaterial->SetTexture(material->diffuse, mWindow->renderer->mShadowmapFBO->depthTexID);
+		mShadersMgr->mMaterial->SetTexture(material->diffuse, mVisualRender->mShadowmapFBO->depthTexID);
 	}
 
 	// Bind vertex buffer
@@ -121,4 +119,63 @@ void QuadMesh::Draw()
 
 	glDisableVertexAttribArray(0);
 	glBindVertexArray(0);
+}
+
+// PlaneMesh
+
+PlaneMesh::PlaneMesh()
+{
+	// Generate mesh
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	const GLfloat buffer[] = {
+		-1.0, 0.0,  1.0f,
+		 1.0, 0.0,  1.0f,
+		-1.0, 0.0, -1.0f,
+		-1.0, 0.0, -1.0f,
+		 1.0, 0.0,  1.0f,
+		 1.0, 0.0, -1.0f
+	};
+
+	glGenBuffers(1, &vertexID);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexID);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(buffer), buffer, GL_STATIC_DRAW);
+	glBindVertexArray(0);
+}
+
+void PlaneMesh::Draw()
+{
+	// Draw quad
+	glBindVertexArray(vao);
+
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexID);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	glDisableVertexAttribArray(0);
+	glBindVertexArray(0);
+}
+
+// Water Mesh
+
+WaterMesh::WaterMesh()
+{
+
+}
+
+void WaterMesh::Draw()
+{
+	// Skip render if current framebuffers is not main viewport fbo
+	if (mVisualRender->mCurrentRenderingFBO != mVisualRender->mViewportFBO && mVisualRender->mCurrentRenderingFBO != mVisualRender->mShadowmapFBO)
+		return;
+	
+	// Setup shaders
+	mShadersMgr->mWater->Bind(vec3(0, 0, 0), vec3(20), mVisualRender->mShadowmapFBO->depthTexID);
+	mShadersMgr->mWater->SetColor(vec4(192.0f / 255.0f, 209.0f / 255.0f, 237.0f/255.0f, 1.0f));
+	mShadersMgr->mWater->SetTextures(mVisualRender->mWaterReflectionFBO->renderTexID, mVisualRender->mWaterRefractionFBO->renderTexID);
+
+	PlaneMesh::Draw();
 }

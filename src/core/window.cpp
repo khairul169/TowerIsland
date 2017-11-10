@@ -41,10 +41,6 @@ void Window::init()
 
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 	glfwSetWindowSizeCallback(window, &window_size_callback);
-
-	// Init visual render
-	renderer = new VisualRender();
-	renderer->Init();
 }
 
 void Window::onResized(int width, int height)
@@ -61,13 +57,13 @@ void Window::onResized(int width, int height)
 	mCamera->SetRatio(getAspectRatio());
 
 	// Call renderer resized method
-	renderer->Resized();
+	mVisualRender->Resized();
 }
 
 void Window::loop()
 {
 	// Loop the renderer
-	renderer->Loop();
+	mVisualRender->Loop();
 }
 
 void Window::swapBuffers()
@@ -80,7 +76,7 @@ void Window::swapBuffers()
 
 void Window::free()
 {
-	renderer->Free();
+	mVisualRender->Free();
 }
 
 bool Window::canDestroyed()

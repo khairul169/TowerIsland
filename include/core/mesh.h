@@ -92,7 +92,24 @@ protected:
 
 public:
 	QuadMesh();
+	void Draw();
+};
 
+class PlaneMesh
+{
+protected:
+	GLuint vao, vertexID;
+
+public:
+	PlaneMesh();
+	void Draw();
+};
+
+// WaterMesh
+class WaterMesh : public PlaneMesh
+{
+public:
+	WaterMesh();
 	void Draw();
 };
 

@@ -6,8 +6,12 @@
 class Camera
 {
 public:
+	// Variables
 	mat4 projection, view;
 	float fov, ratio, near, far;
+	
+	// Camera transform
+	vec3 mOrigin, mLookAt;
 
 public:
 	Camera()

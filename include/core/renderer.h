@@ -13,25 +13,36 @@ const bool iEnablePostProcessing = false;
 
 class VisualRender
 {
-private:
+public:
 	// Screen framebuffer
 	Framebuffers* mViewportFBO;
-	Framebuffers* mChromaticPostFX;
 
+private:
 	// Canvas
 	FramebufferCanvas* mViewportCanvas;
 
-	// Mesh
+	// Chromatic post processing
+	Framebuffers* mChromaticPostFX;
 	QuadMesh* mChromaticMesh;
-
-	// Shaders
 	PostFxShaders* mChromaticShaders;
 
+private:
+	// Variables
+	Camera *mDefaultCamera;
+
 public:
+	// Variables
+	Framebuffers* mCurrentRenderingFBO;
+
 	// Shadowmapping
 	Framebuffers* mShadowmapFBO;
 	Camera* mShadowmapCamera;
 	bool mRenderingShadowFBO;
+
+	// Watermesh
+	Framebuffers* mWaterReflectionFBO;
+	Framebuffers* mWaterRefractionFBO;
+	Camera* mWaterReflectionCam;
 
 public:
 	// Methods

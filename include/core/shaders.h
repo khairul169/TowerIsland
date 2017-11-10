@@ -37,11 +37,16 @@ class MaterialShaders: public Shaders
 {
 private:
 	mat4 projection, view, model;
-	mat4 modelViewProjection, mDepthBiasMatrix;
+	mat4 modelViewProjection;
 
+public:
+	mat4 mDepthBiasMatrix;
+
+private:
 	// Vertex uniform
 	GLuint modelMatrix, viewMatrix;
 	GLuint matrixUniform, normalMatrix;
+	GLuint uClippingPlane;
 
 	// Fragment uniform
 	GLuint colorUniform;
@@ -52,6 +57,11 @@ private:
 	GLuint shadowDepthMatrix, shadowDepthTex;
 
 public:
+	// Plane clipping
+	vec4 mClippingPlane;
+
+public:
+	void Bind();
 	void ShadersLoaded();
 
 	void SetModelMatrix(mat4 mat);
@@ -62,6 +72,36 @@ public:
 	void SetColor(vec4 col);
 	void SetTexture(Texture *tex, GLuint shadowDepthID);
 };
+
+// Water Shaders
+class WaterShaders: public Shaders
+{
+private:
+	mat4 mModel, mModelViewProjection;
+
+	// Vertex uniform
+	GLuint uMVP;
+	GLuint uUVSize;
+
+	// Fragment uniform
+	GLuint uTime, uColor;
+	GLuint uReflectionTex, uRefractionTex, uDuDvMap;
+
+	// Shadowmap
+	GLuint shadowDepthMatrix, shadowDepthTex;
+
+	// Textures
+	Texture* mDuDvTexture;
+
+public:
+	void Bind(vec3 pos = vec3(0.0f), vec3 size = vec3(1.0f), GLuint shadowDepthID = 0);
+	void ShadersLoaded();
+
+	void SetColor(vec4 col);
+	void SetTextures(GLuint reflectionTexID, GLuint refractionTexID);
+};
+
+////////////////////////////////////////////////////////////////////////
 
 class PostFxShaders: public Shaders
 {
@@ -110,6 +150,9 @@ public:
 	// Shaders
 	MaterialShaders* mMaterial;
 	CanvasShaders* mCanvas;
+
+	// Water shaders
+	WaterShaders* mWater;
 
 public:
 	void Init();

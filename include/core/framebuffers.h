@@ -15,7 +15,7 @@ public:
 	bool renderTex, depthTex;
 
 public:
-	Framebuffers(bool enableRenderTex = true, bool enableDepthTex = true)
+	Framebuffers(bool enableRenderTex = true, bool enableDepthTex = false)
 	{
 		this->renderTex = enableRenderTex;
 		this->depthTex = enableDepthTex;

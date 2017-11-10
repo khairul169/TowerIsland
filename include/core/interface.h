@@ -8,6 +8,9 @@ class GUI
 private:
 	TextureCanvas* m_TitleImage;
 
+	FramebufferCanvas* mWaterReflection;
+	FramebufferCanvas* mWaterRefraction;
+
 public:
 	void Init();
 	void Redraw();
